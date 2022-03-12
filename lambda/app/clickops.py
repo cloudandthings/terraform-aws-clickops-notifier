@@ -9,7 +9,7 @@ class CloudTrailEvent:
         self.user_agent = event['userAgent']
         self.event_name = event['eventName']
         self.event_source = event['eventSource']
-        self.request_id = event['requestID']
+        self.request_id = event.get('requestID', "NA")
         self.read_only = self.__readonly_event(event)
         self.user_email = self.__user_email(event)
 
@@ -83,7 +83,8 @@ class ClickOpsEventChecker:
             "cloudshell.amazonaws.com:SendHeartBeat",
             "cloudshell.amazonaws.com:CreateEnvironment",
 
-            "kms.amazonaws.com:Decrypt"
+            "kms.amazonaws.com:Decrypt",
+            "kms.amazonaws.com:RetireGrant",
         ]
 
         self.IGNORED_EVENTS = {
@@ -109,8 +110,7 @@ class ClickOpsEventChecker:
         self.USER_AGENTS = {
             "console.amazonaws.com",
             "Coral/Jakarta",
-            "Coral/Netty4",
-            "AWS Internal"
+            "Coral/Netty4"
         }
 
         self.event = event

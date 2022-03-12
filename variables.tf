@@ -61,14 +61,24 @@ variable "message_format" {
 
 variable "excluded_accounts" {
   type        = list(string)
-  description = "List of accounts that be excluded for scans on manual actions."
+  description = "List of accounts that be excluded for scans on manual actions. These take precidence over `included_accounts`"
   default     = []
 }
 
-
 variable "included_accounts" {
   type        = list(string)
-  description = "List of accounts that be scanned to manual actions."
+  description = "List of accounts that be scanned to manual actions. If empty will scan all accounts."
+  default     = []
+}
+
+variable "excluded_users" {
+  type        = list(string)
+  description = "List of email addresses will not be reported on when practicing ClickOps."
+  default     = []
+}
+variable "included_users" {
+  type        = list(string)
+  description = "List of emails that be scanned to manual actions. If empty will scan all emails."
   default     = []
 }
 

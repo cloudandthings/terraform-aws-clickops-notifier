@@ -6,7 +6,10 @@ import io
 import gzip
 import os
 from botocore.vendored import requests
+from typing import Tuple
+
 from clickops import ClickOpsEventChecker, CloudTrailEvent
+
 
 s3 = boto3.client('s3')
 ssm = boto3.client('ssm')
@@ -14,6 +17,8 @@ ssm = boto3.client('ssm')
 WEBHOOK_PARAMETER = os.environ['WEBHOOK_PARAMETER']
 EXCLUDED_ACCOUNTS = json.loads(os.environ['EXCLUDED_ACCOUNTS'])
 INCLUDED_ACCOUNTS = json.loads(os.environ['INCLUDED_ACCOUNTS'])
+EXCLUDED_USERS = json.loads(os.environ['EXCLUDED_USERS'])
+INCLUDED_USERS = json.loads(os.environ['INCLUDED_USERS'])
 LOG_LEVEL = os.environ['LOG_LEVEL']
 
 WEBHOOK_URL = None
@@ -104,28 +109,49 @@ def send_slack_message(user, event, s3_bucket, s3_key, webhook) -> bool:
     return True
 
 
-def valid_account(key) -> bool:
+def valid_account(key) -> Tuple[bool, str]:
     if len(EXCLUDED_ACCOUNTS) == 0 and len(INCLUDED_ACCOUNTS) == 0:
-        print("[VA_ALLOWALL] {key}")
-        return True
+        return True, f'[VA_ALLOWALL] {key}'
 
     if any(acc for acc in EXCLUDED_ACCOUNTS if acc in key):
-        print(f'[VA_EXPLICIT_EXCLUDE] {key} in {json.dumps(EXCLUDED_ACCOUNTS)}')
-        return False
+        return False, f'[VA_EXPLICIT_EXCLUDE] {key} in {json.dumps(EXCLUDED_ACCOUNTS)}'
 
     if len(INCLUDED_ACCOUNTS) == 0:
-        print("[VA_IMPLICIT_INCLUDE] {key}")
-        return True
+        return True, f'[VA_IMPLICIT_INCLUDE] {key}'
 
     if any(acc for acc in INCLUDED_ACCOUNTS if acc in key):
-        print(f'[VA_EXPLICIT_INCLUDE] {key} in {json.dumps(INCLUDED_ACCOUNTS)}')
-        return True
+        return True, f'[VA_EXPLICIT_INCLUDE] {key} in {json.dumps(INCLUDED_ACCOUNTS)}'
 
-    print(f'[VA_IMPLICIT_EXCLUDE] {key} not in {json.dumps(INCLUDED_ACCOUNTS)}')
+    return False, f'[VA_IMPLICIT_EXCLUDE] {key} not in {json.dumps(INCLUDED_ACCOUNTS)}'
+
+
+def valid_user(email) -> Tuple[bool, str]:
+    """
+    Corey Quinn:billie: 10:21 PM
+    Feature idea: ignore ClickOps actions not only by account,
+    but also by user identity. "Clicky Pete" probably becomes
+    noisy but he also can fire the rest of us...
+    """
+    if email == "Unknown":
+        return True, '[VU_UNKNOWN]'
+
+    if len(EXCLUDED_USERS) == 0 and len(INCLUDED_USERS) == 0:
+        return True, f'[VU_ALLOWALL] {email}'
+
+    if email in EXCLUDED_USERS:
+        return False, f'[VU_EXPLICIT_EXCLUDE] {email} in {json.dumps(EXCLUDED_USERS)}'
+
+    if len(INCLUDED_USERS) == 0:
+        return True, f'[VU_IMPLICIT_INCLUDE] {email}'
+
+    if email in INCLUDED_USERS:
+        return True, f'[VU_EXPLICIT_INCLUDE] {email} in {json.dumps(INCLUDED_USERS)}'
+
+    print(f'[VU_IMPLICIT_EXCLUDE] {email} not in {json.dumps(INCLUDED_USERS)}')
     return False
 
 
-def handler(event, context) -> None:
+def handler(event, context) -> None:  # noqa: C901
     """
     This functions processes CloudTrail logs from S3, filters events from the AWS
     Console, and publishes to SNS
@@ -153,7 +179,9 @@ def handler(event, context) -> None:
             if "CloudTrail" not in key_elements:
                 continue
 
-            if not valid_account(key):
+            is_valid_account, reason = valid_account(key)
+
+            if not is_valid_account:
                 continue
 
             try:
@@ -165,27 +193,28 @@ def handler(event, context) -> None:
 
                     for event in event_json['Records']:
                         cloudtrail_event = CloudTrailEvent(event)
+
+                        is_valid_user, reason = valid_user(cloudtrail_event.user_email)
+
+                        if not is_valid_user:
+                            continue
+
                         clickops_checker = ClickOpsEventChecker(cloudtrail_event)
 
-                        if clickops_checker.is_clickops():
+                        is_clickops, reason = clickops_checker.is_clickops()
+
+                        if is_clickops:
                             if not send_slack_message(
                                     cloudtrail_event.user_email,
                                     event,
                                     s3_bucket=bucket,
                                     s3_key=key,
                                     webhook=webhook_url):
-                                print("[ERROR] Slack Message not sent")
-                                print(json.dumps(record))
+                                print(f"[ERROR] Slack Message not sent\n\n{json.dumps(record)}")  # noqa: E501
 
                 # return response['ContentType']
             except Exception as e:
                 print(e)
-                message = f"""
-                    Error getting object {key} from bucket {bucket}.
-                    Make sure they exist and your bucket is in the same
-                    region as this function.
-                """
-                print(message)
                 raise e
 
     return "Completed"

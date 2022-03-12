@@ -35,3 +35,4 @@ terraform.tfvars
 .idea
 __pycache__
 tmp
+sample/plan

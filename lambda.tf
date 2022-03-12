@@ -19,6 +19,10 @@ resource "aws_lambda_function" "func" {
       WEBHOOK_PARAMETER = aws_ssm_parameter.slack_webhook.name
       EXCLUDED_ACCOUNTS = jsonencode(var.excluded_accounts)
       INCLUDED_ACCOUNTS = jsonencode(var.included_accounts)
+
+      EXCLUDED_USERS = jsonencode(var.excluded_users)
+      INCLUDED_USERS = jsonencode(var.included_users)
+
       LOG_LEVEL         = "INFO"
     }
   }
