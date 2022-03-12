@@ -1,0 +1,96 @@
+{
+  "event": {
+    "eventVersion": "1.08",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "principalId": "AROAXK4KVD27BINQTHSKU:paul@cloudandthings.io",
+      "arn": "arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_AWSAdministratorAccess_9c4e9f0a42111732/paul@cloudandthings.io",
+      "accountId": "123456789012",
+      "accessKeyId": "ASIAXK4KVD27I75KZNMR",
+      "sessionContext": {
+        "sessionIssuer": {
+          "type": "Role",
+          "principalId": "AROAXK4KVD27BINQTHSKU",
+          "arn": "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_AWSAdministratorAccess_9c4e9f0a42111732",
+          "accountId": "123456789012",
+          "userName": "AWSReservedSSO_AWSAdministratorAccess_9c4e9f0a42111732"
+        },
+        "webIdFederationData": {},
+        "attributes": {
+          "creationDate": "2022-03-11T21:25:00Z",
+          "mfaAuthenticated": "false"
+        }
+      }
+    },
+    "eventTime": "2022-03-11T21:26:29Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "CreateVpc",
+    "awsRegion": "eu-west-1",
+    "sourceIPAddress": "AWS Internal",
+    "userAgent": "AWS Internal",
+    "requestParameters": {
+      "cidrBlock": "10.0.0.0/16",
+      "instanceTenancy": "default",
+      "amazonProvidedIpv6CidrBlock": false,
+      "tagSpecificationSet": {
+        "items": [
+          {
+            "resourceType": "vpc",
+            "tags": [
+              {
+                "key": "Name",
+                "value": "test-clickops"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "responseElements": {
+      "requestId": "7ef2cac7-e271-40d2-8f1b-3bca63479d9a",
+      "vpc": {
+        "vpcId": "vpc-08eaa8606850ddfc5",
+        "state": "pending",
+        "ownerId": "123456789012",
+        "cidrBlock": "10.0.0.0/16",
+        "cidrBlockAssociationSet": {
+          "items": [
+            {
+              "cidrBlock": "10.0.0.0/16",
+              "associationId": "vpc-cidr-assoc-0ca53ef4c3f21dc48",
+              "cidrBlockState": {
+                "state": "associated"
+              }
+            }
+          ]
+        },
+        "ipv6CidrBlockAssociationSet": {},
+        "dhcpOptionsId": "dopt-7a626b1c",
+        "instanceTenancy": "default",
+        "tagSet": {
+          "items": [
+            {
+              "key": "Name",
+              "value": "test-clickops"
+            }
+          ]
+        },
+        "isDefault": false
+      }
+    },
+    "requestID": "7ef2cac7-e271-40d2-8f1b-3bca63479d9a",
+    "eventID": "c11aeb62-f70e-4ece-93f1-e2e0fece3759",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "123456789012",
+    "eventCategory": "Management",
+    "sessionCredentialFromConsole": "true"
+  },
+  "expect": {
+    "is_clickops": false,
+    "reason_contains": "[COEC_Rule2]",
+    "user_email": "paul@cloudandthings.io",
+    "readonly": false
+  }
+}

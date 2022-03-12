@@ -1,0 +1,9 @@
+{
+  "event": ,
+  "expect": {
+    "is_clickops": false,
+    "reason_contains": "[COEC_Rule2]",
+    "user_email": "Unknown",
+    "readonly": false
+  }
+}
