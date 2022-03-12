@@ -1,0 +1,32 @@
+{
+  "event": {
+    "eventVersion": "1.08",
+    "userIdentity": {
+      "type": "Unknown",
+      "accountId": "123456789012",
+      "accessKeyId": "5f0fb67d-8838-4d13-9f15-397a86509e83"
+    },
+    "eventTime": "2022-03-10T23:54:19Z",
+    "eventSource": "sso-directory.amazonaws.com",
+    "eventName": "SearchUsers",
+    "awsRegion": "eu-west-1",
+    "sourceIPAddress": "54.247.48.209",
+    "userAgent": "Go-http-client/1.1",
+    "requestID": "77bff923-87cf-4659-8908-c8d97ea6a59e",
+    "eventID": "a8b8e218-b0fd-4f7a-bdfe-efc1e4e97794",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "123456789012",
+    "eventCategory": "Management",
+    "tlsDetails": {
+      "clientProvidedHostHeader": "up.sso.eu-west-1.amazonaws.com"
+    }
+  },
+  "expect": {
+    "is_clickops": false,
+    "reason_contains": "[COEC_Rule2]",
+    "user_email": "Unknown",
+    "readonly": false
+  }
+}

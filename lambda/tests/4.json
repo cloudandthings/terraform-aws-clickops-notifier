@@ -1,0 +1,32 @@
+{
+  "event":         {
+    "eventVersion": "1.08",
+    "userIdentity": {
+        "type": "Unknown",
+        "principalId": "93670461eb-7876523f-b9ed-4a2f-84aa-1a5c6dd43c08",
+        "accountId": "123456789012",
+        "userName": "paul@cloudandthings.io"
+    },
+    "eventTime": "2022-03-11T07:49:56Z",
+    "eventSource": "sso.amazonaws.com",
+    "eventName": "Authenticate",
+    "awsRegion": "eu-west-1",
+    "sourceIPAddress": "197.185.117.127",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36",
+    "requestParameters": null,
+    "responseElements": null,
+    "requestID": "21f77f98-39f8-4c25-a6a7-7355d428e6e8",
+    "eventID": "cacf5b3f-942a-4ce4-af2c-0be9934ea95e",
+    "readOnly": false,
+    "eventType": "AwsServiceEvent",
+    "managementEvent": true,
+    "recipientAccountId": "123456789012",
+    "eventCategory": "Management"
+},
+  "expect": {
+    "is_clickops": false,
+    "reason_contains": "[COEC_Rule5]",
+    "user_email": "paul@cloudandthings.io",
+    "readonly": false
+  }
+}

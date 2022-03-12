@@ -1,0 +1,37 @@
+{
+  "event": {
+    "eventVersion": "1.08",
+    "userIdentity": {
+      "type": "Unknown",
+      "principalId": "123456789012",
+      "arn": "",
+      "accountId": "123456789012",
+      "accessKeyId": ""
+    },
+    "eventTime": "2022-03-11T07:49:53Z",
+    "eventSource": "signin.amazonaws.com",
+    "eventName": "UserAuthentication",
+    "awsRegion": "eu-west-1",
+    "sourceIPAddress": "197.185.117.127",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36",
+    "requestParameters": null,
+    "responseElements": null,
+
+    "requestID": "20dab95b-6714-4bc8-a2b8-af61b3d66d6d",
+    "eventID": "a4910f0c-becf-4801-9aab-5338f61d0aa4",
+    "readOnly": false,
+    "eventType": "AwsServiceEvent",
+    "managementEvent": true,
+    "recipientAccountId": "123456789012",
+    "serviceEventDetails": {
+      "UserAuthentication": "Success"
+    },
+    "eventCategory": "Management"
+  },
+  "expect": {
+    "is_clickops": false,
+    "reason_contains": "[COEC_Rule5]",
+    "user_email": "Unknown",
+    "readonly": false
+  }
+}
