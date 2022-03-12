@@ -46,7 +46,7 @@
   },
   "expect": {
     "is_clickops": true,
-    "reason_contains": "[COEC_Rule6]",
+    "reason_contains": "[COEC_Rule2]",
     "user_email": "paul@cloudandthings.io",
     "readonly": false
   }
