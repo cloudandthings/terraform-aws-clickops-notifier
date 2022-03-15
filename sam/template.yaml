@@ -1,0 +1,194 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: ClickOps Notifier
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: ClickOps
+    Description: ClickOps - Track Clicks in your account
+    Author: cloudandthings
+    SpdxLicenseId: Apache-2.0
+    LicenseUrl: LICENSE.txt
+    ReadmeUrl: README.md
+    Labels: ['clickops', 'report', 'automation', 'devops', 'cloudandthings']
+    HomePageUrl: https://github.com/cloudandthings/terraform-aws-clickops-notifier
+    SemanticVersion: 0.0.1
+    SourceCodeUrl: https://github.com/cloudandthings/terraform-aws-clickops-notifier
+
+Parameters:
+  CloudtrailBucket:
+    Type: String
+    Description: |
+      Bucket containing the Cloudtrail logs that you want to process. 
+      ControlTower bucket name follows this naming convention 
+      `aws-controltower-logs-{{account_id}}-{{region}}`
+  WebhookUrl:
+    Type: String
+    Description: The webhook URL for notifications. https://api.slack.com/messaging/webhooks
+
+  MessageFormat:
+    Type: String
+    Description: Where do you want to send this message? Only slack, for now.
+    Default: slack
+    AllowedPattern : "slack"
+  
+  ExcludedAccounts:
+    Type: String
+    Description: |
+      List of accounts that be excluded for scans on manual 
+      actions. These take precidence over `included_accounts`. Should
+      be a valid json string example: ["123456789012", "..."]
+    Default: "[]"
+  IncludedAccounts:
+    Type: String
+    Description: |
+      List of accounts that be scanned to manual actions. If 
+      empty will scan all accounts. Should be a valid json string 
+      example: ["123456789012", "..."]
+    Default: "[]"
+
+  ExcludedUsers:
+    Type: String
+    Description: |
+      List of email addresses will not be reported on when practicing 
+      ClickOps.". Should be a valid json string example: ["123456789012", "..."]
+    Default: "[]"
+  IncludedUsers:
+    Type: String
+    Description: |
+      List of emails that be scanned to manual actions. If empty will 
+      scan all emails." Should be a valid json string 
+      example: ["123456789012", "..."]
+    Default: "[]"
+
+  EventProcessingTimeout:
+    Type: Number
+    Description: Name of application (no spaces). Value must be globally unique
+    Default: 60
+  LogRetention:
+    Type: Number
+    Description: Name of application (no spaces). Value must be globally unique
+    Default: 30
+
+Resources:
+  WebhookSSMParameter:
+    Type: AWS::SSM::Parameter
+    Properties: 
+      Description: Slack Incomming Webhook. https://api.slack.com/messaging/webhooks
+      Name: webhook
+      Type: String
+      Value: 
+        Ref: WebhookUrl
+  WatchLogGroup: 
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: /aws/lambda/ClickOpsFunction
+      RetentionInDays: 7
+  ClickOpsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda/app/
+      Handler: main.handler
+      Runtime: python3.9
+      Role:
+        Ref: FunctionRole
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          WEBHOOK_PARAMETER: 
+            Ref: WebhookSSMParameter
+          EXCLUDED_ACCOUNTS:
+            Ref: ExcludedAccounts
+          INCLUDED_ACCOUNTS:
+            Ref: IncludedAccounts
+          EXCLUDED_USERS:
+            Ref: ExcludedUsers
+          INCLUDED_USERS:
+            Ref: IncludedUsers
+          LOG_LEVEL: "INFO"
+  BucketNotificationQueue:
+    Type: AWS::SQS::Queue
+    Properties: 
+      QueueName: "ClickOpsBucketNotificationQueue"
+      VisibilityTimeout: 60
+  BucketNotificationQueuePolicy: 
+    Type: AWS::SQS::QueuePolicy
+    Properties: 
+      Queues: 
+        - !Sub ${BucketNotificationQueue.QueueUrl}
+      PolicyDocument: 
+        Statement: 
+          - 
+            Action: 
+              - "SQS:SendMessage"
+            Effect: "Allow"
+            Resource: !Sub ${BucketNotificationQueue.Arn}
+            Principal: '*' 
+  FunctionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: logging
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+        - PolicyName: s3Access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:Get*'
+                  - 's3:List*'
+                  - 's3:Describe*'
+                Resource: '*'
+        - PolicyName: SSMAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'ssm:Get*'
+                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:${WebhookSSMParameter}
+        - PolicyName: SQSAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'sqs:*'
+                Resource: 
+                  Fn::GetAtt: 
+                    - "BucketNotificationQueue"
+                    - "Arn"
+  EventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: EventRule
+      State: ENABLED
+      EventPattern:
+        source:
+          - aws.s3
+        detail:
+          eventName:
+            - s3:ObjectCreated:*"
+          requestParameters:
+            bucketName:
+              - !Ref CloudtrailBucket
+      Targets:
+        - Arn: !GetAtt BucketNotificationQueue.Arn
+          Id: EventConsumerFunctionTarget
