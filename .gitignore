@@ -36,3 +36,5 @@ terraform.tfvars
 __pycache__
 tmp
 sample/plan
+
+sam/packaged.yaml

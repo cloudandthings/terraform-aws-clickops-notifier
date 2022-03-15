@@ -89,8 +89,7 @@ Resources:
       CodeUri: ../lambda/app/
       Handler: main.handler
       Runtime: python3.9
-      Role:
-        Ref: FunctionRole
+      Role: !GetAtt FunctionRole.Arn
       Architectures:
         - x86_64
       Environment:
@@ -106,6 +105,13 @@ Resources:
           INCLUDED_USERS:
             Ref: IncludedUsers
           LOG_LEVEL: "INFO"
+      Events:
+        SQS:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt BucketNotificationQueue.Arn
+            BatchSize: 10
+            MaximumBatchingWindowInSeconds: 300
   BucketNotificationQueue:
     Type: AWS::SQS::Queue
     Properties: 
