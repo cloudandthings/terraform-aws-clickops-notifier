@@ -137,7 +137,8 @@ Resources:
       Handler: main.handler
       Runtime: python3.9
       Role: !GetAtt FunctionRole.Arn
-      Layer: !FindInMap [RegionMap, !Ref "AWS::Region", Layer]
+      Layers: 
+        - !FindInMap [RegionMap, !Ref "AWS::Region", Layer]
       Architectures:
         - x86_64
       Environment:
