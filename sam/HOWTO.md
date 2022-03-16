@@ -18,7 +18,7 @@ sam deploy \
 --s3-bucket aws-cat-clickops-main-deployment \
 --capabilities CAPABILITY_NAMED_IAM \
 --region eu-west-1 \
---parameter-overrides CloudtrailBucket=aws-controltower-logs-920551683281-eu-west-1 WebhookUrl=https://hooks.slack.com/services/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
+--parameter-overrides CloudtrailBucket=aws-controltower-logs-111111111111-eu-west-1 WebhookUrl=https://hooks.slack.com/services/1111111111111
 ```
 
 https://serverlessland.com/patterns/s3-eventbridge
