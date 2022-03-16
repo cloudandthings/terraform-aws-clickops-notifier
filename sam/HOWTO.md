@@ -5,7 +5,8 @@ sam package \
 --template template.yaml \
 --s3-bucket aws-cat-clickops-main-deployment \
 --s3-prefix sam-package \
---output-template-file packaged.yaml
+--output-template-file packaged.yaml \
+--region eu-west-1
 
 sam publish \
 -t packaged.yaml \
