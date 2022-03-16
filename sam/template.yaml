@@ -69,6 +69,53 @@ Parameters:
     Description: Name of application (no spaces). Value must be globally unique
     Default: 30
 
+Mappings:
+  RegionMap:
+    ap-northeast-1:
+      Layer: arn:aws:lambda:ap-northeast-1:249908578461:layer:AWSLambda-Python-AWS-SDK:4
+    us-east-1:
+      Layer: arn:aws:lambda:us-east-1:668099181075:layer:AWSLambda-Python-AWS-SDK:4
+    ap-southeast-1:
+      Layer: arn:aws:lambda:ap-southeast-1:468957933125:layer:AWSLambda-Python-AWS-SDK:4
+    eu-west-1:
+      Layer: arn:aws:lambda:eu-west-1:399891621064:layer:AWSLambda-Python-AWS-SDK:4
+    us-west-1:
+      Layer: arn:aws:lambda:us-west-1:325793726646:layer:AWSLambda-Python-AWS-SDK:4
+    ap-east-1:
+      Layer: arn:aws:lambda:ap-east-1:118857876118:layer:AWSLambda-Python-AWS-SDK:4
+    ap-northeast-2:
+      Layer: arn:aws:lambda:ap-northeast-2:296580773974:layer:AWSLambda-Python-AWS-SDK:4
+    ap-northeast-3:
+      Layer: arn:aws:lambda:ap-northeast-3:961244031340:layer:AWSLambda-Python-AWS-SDK:4
+    ap-south-1:
+      Layer: arn:aws:lambda:ap-south-1:631267018583:layer:AWSLambda-Python-AWS-SDK:4
+    ap-southeast-2:
+      Layer: arn:aws:lambda:ap-southeast-2:817496625479:layer:AWSLambda-Python-AWS-SDK:4
+    ca-central-1:
+      Layer: arn:aws:lambda:ca-central-1:778625758767:layer:AWSLambda-Python-AWS-SDK:4
+    eu-central-1:
+      Layer: arn:aws:lambda:eu-central-1:292169987271:layer:AWSLambda-Python-AWS-SDK:4
+    eu-north-1:
+      Layer: arn:aws:lambda:eu-north-1:642425348156:layer:AWSLambda-Python-AWS-SDK:4
+    eu-west-2:
+      Layer: arn:aws:lambda:eu-west-2:142628438157:layer:AWSLambda-Python-AWS-SDK:4
+    eu-west-3:
+      Layer: arn:aws:lambda:eu-west-3:959311844005:layer:AWSLambda-Python-AWS-SDK:4
+    sa-east-1:
+      Layer: arn:aws:lambda:sa-east-1:640010853179:layer:AWSLambda-Python-AWS-SDK:4
+    us-east-2:
+      Layer: arn:aws:lambda:us-east-2:259788987135:layer:AWSLambda-Python-AWS-SDK:4
+    us-west-2:
+      Layer: arn:aws:lambda:us-west-2:420165488524:layer:AWSLambda-Python-AWS-SDK:5
+    cn-north-1:
+      Layer: arn:aws-cn:lambda:cn-north-1:683298794825:layer:AWSLambda-Python-AWS-SDK:4
+    cn-northwest-1:
+      Layer: arn:aws-cn:lambda:cn-northwest-1:382066503313:layer:AWSLambda-Python-AWS-SDK:4
+    us-gov-west:
+      Layer: arn:aws-us-gov:lambda:us-gov-west-1:556739011827:layer:AWSLambda-Python-AWS-SDK:4
+    us-gov-east:
+      Layer: arn:aws-us-gov:lambda:us-gov-east-1:138526772879:layer:AWSLambda-Python-AWS-SDK:4
+
 Resources:
   WebhookSSMParameter:
     Type: AWS::SSM::Parameter
@@ -90,6 +137,7 @@ Resources:
       Handler: main.handler
       Runtime: python3.9
       Role: !GetAtt FunctionRole.Arn
+      Layer: !FindInMap [RegionMap, !Ref "AWS::Region", Layer]
       Architectures:
         - x86_64
       Environment:
@@ -181,20 +229,81 @@ Resources:
                   Fn::GetAtt: 
                     - "BucketNotificationQueue"
                     - "Arn"
-  EventRule:
-    Type: AWS::Events::Rule
+  BucketConfiguration:
+    Type: Custom::S3BucketConfiguration
+    DependsOn:
+    - BucketNotificationQueue
+    - BucketNotificationQueuePolicy
     Properties:
-      Description: EventRule
-      State: ENABLED
-      EventPattern:
-        source:
-          - aws.s3
-        detail:
-          eventName:
-            - s3:ObjectCreated:*"
-          requestParameters:
-            bucketName:
-              - !Ref CloudtrailBucket
-      Targets:
-        - Arn: !GetAtt BucketNotificationQueue.Arn
-          Id: EventConsumerFunctionTarget
+      ServiceToken:
+        Fn::GetAtt:
+        - S3BucketConfiguration
+        - Arn
+      Bucket:
+        Ref: CloudtrailBucket
+      NotificationConfiguration:
+        QueueConfigurations:
+        - Events:
+          - s3:ObjectCreated:*
+          QueueArn:
+            Fn::GetAtt:
+            - BucketNotificationQueue
+            - Arn
+  S3BucketConfiguration:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Event S3 SQS Linker
+      Runtime: nodejs10.x
+      MemorySize: 128
+      Timeout: 30
+      Role:
+        Fn::GetAtt:
+        - S3BucketConfigurationExectionRole
+        - Arn
+      Handler: index.handler
+      Code:
+        ZipFile:
+          Fn::Sub: !Sub |
+            var response = require('./cfn-response');
+            var AWS = require('aws-sdk');
+            var s3 = new AWS.S3();
+            exports.handler = function(event, context) {
+              var respond = (e) => response.send(event, context, e ? response.FAILED : response.SUCCESS, e ? e : {});
+              process.on('uncaughtException', e=>failed(e));
+              var params = event.ResourceProperties;
+              delete params.ServiceToken;
+              if (event.RequestType === 'Delete') {
+                params.NotificationConfiguration = {};
+                s3.putBucketNotificationConfiguration(params).promise()
+                  .then((data)=>respond())
+                  .catch((e)=>respond());
+              } else {
+                s3.putBucketNotificationConfiguration(params).promise()
+                  .then((data)=>respond())
+                  .catch((e)=>respond(e));
+              }
+            };
+  S3BucketConfigurationExectionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: s3Access
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:PutBucketNotification
+            - s3:GetBucketNotification
+            Resource:
+              Fn::Sub: arn:aws:s3:::${CloudtrailBucket}
