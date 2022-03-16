@@ -11,7 +11,7 @@ Metadata:
     ReadmeUrl: README.md
     Labels: ['clickops', 'report', 'automation', 'devops', 'cloudandthings']
     HomePageUrl: https://github.com/cloudandthings/terraform-aws-clickops-notifier
-    SemanticVersion: 0.0.3
+    SemanticVersion: 1.0.0
     SourceCodeUrl: https://github.com/cloudandthings/terraform-aws-clickops-notifier
 
 Parameters:
