@@ -1,0 +1,322 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: ClickOps Notifier
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: ClickOps
+    Description: ClickOps - Track Clicks in your account
+    Author: cloudandthings
+    SpdxLicenseId: Apache-2.0
+    LicenseUrl: LICENSE.txt
+    ReadmeUrl: README.md
+    Labels: ['clickops', 'report', 'automation', 'devops', 'cloudandthings']
+    HomePageUrl: https://github.com/cloudandthings/terraform-aws-clickops-notifier
+    SemanticVersion: 1.0.0
+    SourceCodeUrl: https://github.com/cloudandthings/terraform-aws-clickops-notifier
+
+Parameters:
+  CloudtrailBucket:
+    Type: String
+    Description: |
+      Bucket containing the Cloudtrail logs that you want to process. 
+      ControlTower bucket name follows this naming convention 
+      `aws-controltower-logs-{{account_id}}-{{region}}`
+  WebhookUrl:
+    Type: String
+    Description: The webhook URL for notifications. https://api.slack.com/messaging/webhooks
+
+  MessageFormat:
+    Type: String
+    Description: Where do you want to send this message? Only slack, for now.
+    Default: slack
+    AllowedPattern : "slack"
+  
+  ExcludedAccounts:
+    Type: String
+    Description: |
+      List of accounts that be excluded for scans on manual 
+      actions. These take precidence over `included_accounts`. Should
+      be a valid json string example: ["123456789012", "..."]
+    Default: "[]"
+  IncludedAccounts:
+    Type: String
+    Description: |
+      List of accounts that be scanned to manual actions. If 
+      empty will scan all accounts. Should be a valid json string 
+      example: ["123456789012", "..."]
+    Default: "[]"
+
+  ExcludedUsers:
+    Type: String
+    Description: |
+      List of email addresses will not be reported on when practicing 
+      ClickOps.". Should be a valid json string example: ["123456789012", "..."]
+    Default: "[]"
+  IncludedUsers:
+    Type: String
+    Description: |
+      List of emails that be scanned to manual actions. If empty will 
+      scan all emails." Should be a valid json string 
+      example: ["123456789012", "..."]
+    Default: "[]"
+
+  EventProcessingTimeout:
+    Type: Number
+    Description: Name of application (no spaces). Value must be globally unique
+    Default: 60
+  LogRetention:
+    Type: Number
+    Description: Name of application (no spaces). Value must be globally unique
+    Default: 30
+
+Mappings:
+  RegionMap:
+    ap-northeast-1:
+      Layer: arn:aws:lambda:ap-northeast-1:249908578461:layer:AWSLambda-Python-AWS-SDK:4
+    us-east-1:
+      Layer: arn:aws:lambda:us-east-1:668099181075:layer:AWSLambda-Python-AWS-SDK:4
+    ap-southeast-1:
+      Layer: arn:aws:lambda:ap-southeast-1:468957933125:layer:AWSLambda-Python-AWS-SDK:4
+    eu-west-1:
+      Layer: arn:aws:lambda:eu-west-1:399891621064:layer:AWSLambda-Python-AWS-SDK:4
+    us-west-1:
+      Layer: arn:aws:lambda:us-west-1:325793726646:layer:AWSLambda-Python-AWS-SDK:4
+    ap-east-1:
+      Layer: arn:aws:lambda:ap-east-1:118857876118:layer:AWSLambda-Python-AWS-SDK:4
+    ap-northeast-2:
+      Layer: arn:aws:lambda:ap-northeast-2:296580773974:layer:AWSLambda-Python-AWS-SDK:4
+    ap-northeast-3:
+      Layer: arn:aws:lambda:ap-northeast-3:961244031340:layer:AWSLambda-Python-AWS-SDK:4
+    ap-south-1:
+      Layer: arn:aws:lambda:ap-south-1:631267018583:layer:AWSLambda-Python-AWS-SDK:4
+    ap-southeast-2:
+      Layer: arn:aws:lambda:ap-southeast-2:817496625479:layer:AWSLambda-Python-AWS-SDK:4
+    ca-central-1:
+      Layer: arn:aws:lambda:ca-central-1:778625758767:layer:AWSLambda-Python-AWS-SDK:4
+    eu-central-1:
+      Layer: arn:aws:lambda:eu-central-1:292169987271:layer:AWSLambda-Python-AWS-SDK:4
+    eu-north-1:
+      Layer: arn:aws:lambda:eu-north-1:642425348156:layer:AWSLambda-Python-AWS-SDK:4
+    eu-west-2:
+      Layer: arn:aws:lambda:eu-west-2:142628438157:layer:AWSLambda-Python-AWS-SDK:4
+    eu-west-3:
+      Layer: arn:aws:lambda:eu-west-3:959311844005:layer:AWSLambda-Python-AWS-SDK:4
+    sa-east-1:
+      Layer: arn:aws:lambda:sa-east-1:640010853179:layer:AWSLambda-Python-AWS-SDK:4
+    us-east-2:
+      Layer: arn:aws:lambda:us-east-2:259788987135:layer:AWSLambda-Python-AWS-SDK:4
+    us-west-2:
+      Layer: arn:aws:lambda:us-west-2:420165488524:layer:AWSLambda-Python-AWS-SDK:5
+    cn-north-1:
+      Layer: arn:aws-cn:lambda:cn-north-1:683298794825:layer:AWSLambda-Python-AWS-SDK:4
+    cn-northwest-1:
+      Layer: arn:aws-cn:lambda:cn-northwest-1:382066503313:layer:AWSLambda-Python-AWS-SDK:4
+    us-gov-west:
+      Layer: arn:aws-us-gov:lambda:us-gov-west-1:556739011827:layer:AWSLambda-Python-AWS-SDK:4
+    us-gov-east:
+      Layer: arn:aws-us-gov:lambda:us-gov-east-1:138526772879:layer:AWSLambda-Python-AWS-SDK:4
+
+Resources:
+  WebhookSSMParameter:
+    Type: AWS::SSM::Parameter
+    Properties: 
+      Description: Slack Incomming Webhook. https://api.slack.com/messaging/webhooks
+      Name: webhook
+      Type: String
+      Value: 
+        Ref: WebhookUrl
+  WatchLogGroup: 
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: /aws/lambda/ClickOpsFunction
+      RetentionInDays: 7
+  ClickOpsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda/app/
+      Handler: main.handler
+      Runtime: python3.9
+      Role: !GetAtt FunctionRole.Arn
+      Layers: 
+        - !FindInMap [RegionMap, !Ref "AWS::Region", Layer]
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          WEBHOOK_PARAMETER: 
+            Ref: WebhookSSMParameter
+          EXCLUDED_ACCOUNTS:
+            Ref: ExcludedAccounts
+          INCLUDED_ACCOUNTS:
+            Ref: IncludedAccounts
+          EXCLUDED_USERS:
+            Ref: ExcludedUsers
+          INCLUDED_USERS:
+            Ref: IncludedUsers
+          LOG_LEVEL: "INFO"
+      Events:
+        SQS:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt BucketNotificationQueue.Arn
+            BatchSize: 10
+            MaximumBatchingWindowInSeconds: 300
+  BucketNotificationQueue:
+    Type: AWS::SQS::Queue
+    Properties: 
+      QueueName: "ClickOpsBucketNotificationQueue"
+      VisibilityTimeout: 60
+  BucketNotificationQueuePolicy: 
+    Type: AWS::SQS::QueuePolicy
+    Properties: 
+      Queues: 
+        - !Sub ${BucketNotificationQueue.QueueUrl}
+      PolicyDocument: 
+        Statement: 
+          - 
+            Action: 
+              - "SQS:SendMessage"
+            Effect: "Allow"
+            Resource: !Sub ${BucketNotificationQueue.Arn}
+            Principal: '*' 
+  FunctionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: logging
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+        - PolicyName: s3Access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:Get*'
+                  - 's3:List*'
+                  - 's3:Describe*'
+                Resource: '*'
+        - PolicyName: SSMAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "ssm:Describe*"
+                  - "ssm:Get*"
+                  - "ssm:List*"
+                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${WebhookSSMParameter}
+        - PolicyName: SQSAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'sqs:*'
+                Resource: 
+                  Fn::GetAtt: 
+                    - "BucketNotificationQueue"
+                    - "Arn"
+  BucketConfiguration:
+    Type: Custom::S3BucketConfiguration
+    DependsOn:
+    - BucketNotificationQueue
+    - BucketNotificationQueuePolicy
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+        - S3BucketConfiguration
+        - Arn
+      Bucket:
+        Ref: CloudtrailBucket
+      NotificationConfiguration:
+        QueueConfigurations:
+        - Events:
+          - s3:ObjectCreated:*
+          QueueArn:
+            Fn::GetAtt:
+            - BucketNotificationQueue
+            - Arn
+  S3BucketConfiguration:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Event S3 SQS Linker
+      Runtime: nodejs14.x
+      MemorySize: 128
+      Timeout: 30
+      Role:
+        Fn::GetAtt:
+        - S3BucketConfigurationExectionRole
+        - Arn
+      Handler: index.handler
+      Code:
+        ZipFile: !Sub |
+            var response = require('./cfn-response');
+            var AWS = require('aws-sdk');
+            var s3 = new AWS.S3();
+            exports.handler = function(event, context) {
+              var respond = (e) => response.send(event, context, e ? response.FAILED : response.SUCCESS, e ? e : {});
+              process.on('uncaughtException', e=>failed(e));
+              var params = event.ResourceProperties;
+              delete params.ServiceToken;
+              if (event.RequestType === 'Delete') {
+                params.NotificationConfiguration = {};
+                s3.putBucketNotificationConfiguration(params).promise()
+                  .then((data)=>respond())
+                  .catch((e)=>respond());
+              } else {
+                s3.putBucketNotificationConfiguration(params).promise()
+                  .then((data)=>respond())
+                  .catch((e)=>respond(e));
+              }
+            };
+  S3BucketConfigurationExectionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: s3Access
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:PutBucketNotification
+            - s3:GetBucketNotification
+            Resource:
+              Fn::Sub: arn:aws:s3:::${CloudtrailBucket}
+      - PolicyName: logging
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'logs:CreateLogGroup'
+                - 'logs:CreateLogStream'
+                - 'logs:PutLogEvents'
+              Resource: 'arn:aws:logs:*:*:*'
