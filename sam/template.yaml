@@ -11,7 +11,7 @@ Metadata:
     ReadmeUrl: README.md
     Labels: ['clickops', 'report', 'automation', 'devops', 'cloudandthings']
     HomePageUrl: https://github.com/cloudandthings/terraform-aws-clickops-notifier
-    SemanticVersion: 0.0.1
+    SemanticVersion: 0.0.3
     SourceCodeUrl: https://github.com/cloudandthings/terraform-aws-clickops-notifier
 
 Parameters:
@@ -218,8 +218,11 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 'ssm:Get*'
-                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:${WebhookSSMParameter}
+                Action: 
+                  - "ssm:Describe*"
+                  - "ssm:Get*"
+                  - "ssm:List*"
+                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${WebhookSSMParameter}
         - PolicyName: SQSAccess
           PolicyDocument:
             Version: "2012-10-17"
@@ -254,7 +257,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Description: Event S3 SQS Linker
-      Runtime: nodejs10.x
+      Runtime: nodejs14.x
       MemorySize: 128
       Timeout: 30
       Role:
@@ -263,8 +266,7 @@ Resources:
         - Arn
       Handler: index.handler
       Code:
-        ZipFile:
-          Fn::Sub: !Sub |
+        ZipFile: !Sub |
             var response = require('./cfn-response');
             var AWS = require('aws-sdk');
             var s3 = new AWS.S3();
@@ -308,3 +310,13 @@ Resources:
             - s3:GetBucketNotification
             Resource:
               Fn::Sub: arn:aws:s3:::${CloudtrailBucket}
+      - PolicyName: logging
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'logs:CreateLogGroup'
+                - 'logs:CreateLogStream'
+                - 'logs:PutLogEvents'
+              Resource: 'arn:aws:logs:*:*:*'
