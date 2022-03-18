@@ -1,5 +1,8 @@
 name: sam-publish
-on: [release]
+on:
+  create:
+    tags:
+      - v*
 
 defaults:
   run:
