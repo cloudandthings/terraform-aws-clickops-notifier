@@ -11,7 +11,7 @@ Metadata:
     ReadmeUrl: README.md
     Labels: ['clickops', 'report', 'automation', 'devops', 'cloudandthings']
     HomePageUrl: https://github.com/cloudandthings/terraform-aws-clickops-notifier
-    SemanticVersion: 1.0.4
+    SemanticVersion: 1.0.5
     SourceCodeUrl: https://github.com/cloudandthings/terraform-aws-clickops-notifier
 
 Parameters:
@@ -29,7 +29,9 @@ Parameters:
     Type: String
     Description: Where do you want to send this message? Only slack, for now.
     Default: slack
-    AllowedPattern : "slack"
+    AllowedValues:
+        - slack
+        - msteams
   
   ExcludedAccounts:
     Type: String
@@ -153,6 +155,8 @@ Resources:
             Ref: ExcludedUsers
           INCLUDED_USERS:
             Ref: IncludedUsers
+          MESSAGE_FORMAT:
+            Ref: MessageFormat
           LOG_LEVEL: "INFO"
       Events:
         SQS:

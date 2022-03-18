@@ -17,6 +17,7 @@ module "clickops_notifications" {
     cloudtrail_bucket_name = var.cloudtrail_bucket_name
     webhook = var.webhook
     region = var.region
+    message_format = "slack"
 }
 
 variable "cloudtrail_bucket_name" { }

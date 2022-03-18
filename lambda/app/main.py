@@ -5,10 +5,10 @@ import boto3
 import io
 import gzip
 import os
-from botocore.vendored import requests
 from typing import Tuple
 
 from clickops import ClickOpsEventChecker, CloudTrailEvent
+from messenger import Messenger
 
 
 s3 = boto3.client('s3')
@@ -19,6 +19,7 @@ EXCLUDED_ACCOUNTS = json.loads(os.environ['EXCLUDED_ACCOUNTS'])
 INCLUDED_ACCOUNTS = json.loads(os.environ['INCLUDED_ACCOUNTS'])
 EXCLUDED_USERS = json.loads(os.environ['EXCLUDED_USERS'])
 INCLUDED_USERS = json.loads(os.environ['INCLUDED_USERS'])
+MESSAGE_FORMAT = os.environ['MESSAGE_FORMAT']
 LOG_LEVEL = os.environ['LOG_LEVEL']
 
 WEBHOOK_URL = None
@@ -31,82 +32,6 @@ def get_wekbhook() -> str:
         WEBHOOK_URL = response['Parameter']['Value']
 
     return WEBHOOK_URL
-
-
-def send_slack_message(user, event, s3_bucket, s3_key, webhook) -> bool:
-    slack_payload = {
-        "blocks": [
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": ":bell: ClickOps Alert :bell:",
-                    "emoji": True
-                }
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "Someone is practicing ClickOps in your AWS Account!"
-                }
-            },
-            {
-                "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Account Id*\n{event['recipientAccountId']}"
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Region*\n{event['awsRegion']}"
-                    }
-                ]
-            },
-            {
-                "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*IAM Action*\n{event['eventSource'].split('.')[0]}:{event['eventName']}"  # noqa: E501
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Principle*\n{user}"
-                    }
-                ]
-            },
-            {
-                "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Cloudtrail Bucket*\n{s3_bucket}"
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Key*\n{s3_key}"
-                    }
-                ]
-            },
-            {
-                "type": "divider"
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*Event*\n```{json.dumps(event, indent=2)}```"
-                }
-            },
-        ]
-    }
-
-    response = requests.post(webhook, json=slack_payload)
-    if response.status_code != 200:
-        return False
-    return True
 
 
 def valid_account(key) -> Tuple[bool, str]:
@@ -162,6 +87,10 @@ def handler(event, context) -> None:  # noqa: C901
 
     webhook_url = get_wekbhook()
 
+    messenger = Messenger(
+        format=MESSAGE_FORMAT,
+        webhook=webhook_url)
+
     for sqs_record in event['Records']:
         s3_events = json.loads(sqs_record['body'])
 
@@ -204,15 +133,13 @@ def handler(event, context) -> None:  # noqa: C901
                         is_clickops, reason = clickops_checker.is_clickops()
 
                         if is_clickops:
-                            if not send_slack_message(
+                            if not messenger.send(
                                     cloudtrail_event.user_email,
                                     event,
                                     s3_bucket=bucket,
-                                    s3_key=key,
-                                    webhook=webhook_url):
-                                print(f"[ERROR] Slack Message not sent\n\n{json.dumps(record)}")  # noqa: E501
+                                    s3_key=key):
+                                print(f"[ERROR] Message not sent\n\n{json.dumps(record)}")  # noqa: E501
 
-                # return response['ContentType']
             except Exception as e:
                 print(e)
                 raise e

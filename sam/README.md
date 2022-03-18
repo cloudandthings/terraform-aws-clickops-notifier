@@ -1,10 +1,17 @@
 # serverless-aws-clickops-notifier
 
 Get notified when users are taking actions in the AWS Console. More can be found [here](https://medium.com/cloudandthings/aws-clickoops-1b8cabc9b8e3) but only this is our AWS Serverless App which is now available for general use.
-## 🏗️ Serverless App Usage
-### Requirements
 
-It is not strictly a requirement, that you use this with AWS ControlTower. The module has only been tested in the Log Archive account that ships with AWS ControTower. 
+ClickOps has only been tested in an AWS ControlTower environment. It should work on in any environment where CloudTrail has been configured to log to a central bucket.
+
+### Deployment Checklist
+
+- [ ] Deploying from ControlTower Log Archive Account
+- [ ] Deploying from ControlTower Home Region
+- [ ] Logging bucket name handy
+- [ ] Have your Slack / MS Teams webhook url handy
+
+## 🏗️ Serverless App Usage
 
 ### Considerations and Limitations
 
@@ -16,7 +23,7 @@ Something worth noting is the limitation on bucket notification policies. Our so
 |------|-------------|------|---------|:--------:|
 | CloudtrailBucket | Bucket containing the Cloudtrail logs that you want to process. ControlTower bucket name follows this naming convention `aws-controltower-logs-{{account_id}}-{{region}}` | `string` | n/a | yes |
 | WebhookUrl | The webhook URL for notifications. https://api.slack.com/messaging/webhooks | `string` | n/a | yes |
-| MessageFormat | Where do you want to send this message? Only slack, for now. | `string` | `"slack"` | no |
+| MessageFormat | Where do you want to send this message? | `string` | `"slack"` | no |
 | ExcludedAccounts| List of accounts that be excluded for scans on manual actions. These take precidence over `included_accounts` Should be a valid json string example: `["123456789012", "..."]` | `string` | `[]` | no |
 | IncludedAccounts | List of accounts that be scanned to manual actions. If empty will scan all accounts. Should be a valid json string example: `["123456789012", "..."]` | `string` | `[]` | no |
 | ExcludedUsers | List of email addresses will not be reported on when practicing ClickOps.  Should be a valid json string example: `["user@example.com", "..."]` | `string` | `[]` | no |
@@ -44,3 +51,6 @@ The Serverless App will deploy the following resources below:
 Once the Application is deployed tune into the Slack Channel you set to notify and marvel in watching those non-IAAC gremlins make changes in the Console.
 
 ![ClicksOps ](https://github.com/cloudandthings/terraform-aws-clickops-notifier/blob/8a1f076e42107011a4826304c67d3f99e348f5ad/sam/images/clickops-slack-message.png?raw=true)
+
+### Tagging
+The Serverless Application Repository does not expose the ability to tag the Cloudformation stack before it creates the resources. This can however be done after the application has been deployed by updating the `ClickOps` stack's tags in Cloudformation.

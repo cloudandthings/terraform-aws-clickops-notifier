@@ -23,6 +23,8 @@ resource "aws_lambda_function" "func" {
       EXCLUDED_USERS = jsonencode(var.excluded_users)
       INCLUDED_USERS = jsonencode(var.included_users)
 
+      MESSAGE_FORMAT = var.message_format
+
       LOG_LEVEL         = "INFO"
     }
   }
