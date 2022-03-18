@@ -2,6 +2,7 @@
 import json
 from botocore.vendored import requests
 
+
 class Messenger:
 
     def __init__(self, format: str, webhook: str) -> None:
@@ -16,7 +17,7 @@ class Messenger:
             raise ValueError("Invalid format, must be ['slack', 'msteams']")
 
     def __send_msteams_message(self, user, event, s3_bucket, s3_key) -> bool:
-        
+
         payload = {
             "@type": "MessageCard",
             "@context": "http://schema.org/extensions",
@@ -49,7 +50,6 @@ class Messenger:
                 "markdown": True
             }]
         }
-        
 
         response = requests.post(self.webhook, json=payload)
         if response.status_code != 200:
@@ -130,4 +130,3 @@ class Messenger:
         if response.status_code != 200:
             return False
         return True
-

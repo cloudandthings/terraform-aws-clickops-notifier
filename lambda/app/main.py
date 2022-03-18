@@ -88,7 +88,7 @@ def handler(event, context) -> None:  # noqa: C901
     webhook_url = get_wekbhook()
 
     messenger = Messenger(
-        format=MESSAGE_FORMAT, 
+        format=MESSAGE_FORMAT,
         webhook=webhook_url)
 
     for sqs_record in event['Records']:
