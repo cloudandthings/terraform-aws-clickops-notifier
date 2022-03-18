@@ -1,5 +1,5 @@
 name: sam-publish
-on: [publish]
+on: [release]
 
 defaults:
   run:
