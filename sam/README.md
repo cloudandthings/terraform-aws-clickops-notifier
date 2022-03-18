@@ -12,6 +12,11 @@ ClickOps has only been tested in an AWS ControlTower environment. It should work
 - [ ] Have your Slack / MS Teams webhook url handy
 
 ## 🏗️ Serverless App Usage
+
+### Considerations and Limitations
+
+Something worth noting is the limitation on bucket notification policies. Our solution creates a `s3:ObjectCreated:*` without any prefix or suffix fitlers. The limitation is that a duplication of this rule, will result in events not working. For the solution to work, any bucket notification policies will have to be removed. 
+
 ### Inputs
 
 | Name | Description | Type | Default | Required |
