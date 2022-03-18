@@ -53,7 +53,8 @@ variable "message_format" {
 
   validation {
     condition = contains([
-      "slack"
+      "slack",
+      "msteams"
     ], var.message_format)
     error_message = "Invalid message_format provided."
   }
