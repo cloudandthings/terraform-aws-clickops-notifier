@@ -6,6 +6,10 @@ Get notified when users are taking actions in the AWS Console. More can be found
 
 It is not strictly a requirement, that you use this with AWS ControlTower. The module has only been tested in the Log Archive account that ships with AWS ControTower. 
 
+### Considerations and Limitations
+
+Something worth noting is the limitation on bucket notification policies. Our solution creates a `s3:ObjectCreated:*` without any prefix or suffix fitlers. The limitation is that a duplication of this rule, will result in events not working. For the solution to work, any bucket notification policies will have to be removed. 
+
 ### Inputs
 
 | Name | Description | Type | Default | Required |
