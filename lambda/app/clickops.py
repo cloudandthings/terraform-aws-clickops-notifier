@@ -6,7 +6,7 @@ from typing import Tuple
 class CloudTrailEvent:
     def __init__(self, event) -> None:
 
-        self.user_agent = event['userAgent']
+        self.user_agent = event.get('userAgent', 'Unknown User Agent')
         self.event_name = event['eventName']
         self.event_source = event['eventSource']
         self.request_id = event.get('requestID', "NA")

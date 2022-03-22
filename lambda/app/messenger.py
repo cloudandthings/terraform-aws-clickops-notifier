@@ -96,7 +96,7 @@ class Messenger:
                         },
                         {
                             "type": "mrkdwn",
-                            "text": f"*Principle*\n{user}"
+                            "text": f"*Principal*\n{user}"
                         }
                     ]
                 },
