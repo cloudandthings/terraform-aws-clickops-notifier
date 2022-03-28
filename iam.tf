@@ -26,34 +26,53 @@ resource "aws_iam_role_policy" "lambda_permissions" {
   policy = data.aws_iam_policy_document.lambda_permissions.json
 }
 
-
 data "aws_iam_policy_document" "lambda_permissions" {
   statement {
-    sid = "Logging"
+    sid = "LoggingCreateLogGroup"
 
     actions = [
-      "logs:CreateLogGroup",
+      "logs:CreateLogGroup"
+    ]
+
+    resources = [
+      "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.func.name}"
+    ]
+  }
+
+  statement {
+    sid = "LoggingPutEvents"
+
+    actions = [
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
 
     resources = [
-      "arn:aws:logs:*:*:*"
+      "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.func.name}:log-stream:*"
     ]
   }
 
   statement {
-    sid = "S3Access"
+    sid = "S3AccessBucket"
 
     actions = [
-      "s3:Get*",
-      "s3:List*",
-      "s3:Describe*",
+      "s3:ListBucket"
     ]
 
     resources = [
-      "${data.aws_s3_bucket.cloudtrail_bucket.arn}/",
-      "${data.aws_s3_bucket.cloudtrail_bucket.arn}/*",
+      "${data.aws_s3_bucket.cloudtrail_bucket.arn}"
+    ]
+  }
+
+  statement {
+    sid = "S3AccessBucketObject"
+
+    actions = [
+      "s3:GetObject"
+    ]
+
+    resources = [
+      "${data.aws_s3_bucket.cloudtrail_bucket.arn}/*"
     ]
   }
 
@@ -61,7 +80,7 @@ data "aws_iam_policy_document" "lambda_permissions" {
     sid = "SSMAccess"
 
     actions = [
-      "ssm:Get*",
+      "ssm:GetParameter"
     ]
 
     resources = [
@@ -73,12 +92,11 @@ data "aws_iam_policy_document" "lambda_permissions" {
     sid = "SQSAccess"
 
     actions = [
-      "sqs:*",
+      "sqs:*"
     ]
 
     resources = [
       aws_sqs_queue.bucket_notifications.arn
     ]
   }
-
 }
