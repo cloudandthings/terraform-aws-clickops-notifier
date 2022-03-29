@@ -25,7 +25,7 @@ resource "aws_lambda_function" "func" {
 
       MESSAGE_FORMAT = var.message_format
 
-      LOG_LEVEL         = "INFO"
+      LOG_LEVEL = "INFO"
     }
   }
 

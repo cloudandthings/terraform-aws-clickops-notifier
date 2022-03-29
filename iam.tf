@@ -28,7 +28,7 @@ resource "aws_iam_role_policy" "lambda_permissions" {
 
 data "aws_iam_policy_document" "lambda_permissions" {
   statement {
-    sid = "LoggingCreateLogGroup"
+    sid = "LoggingCreateGroup"
 
     actions = [
       "logs:CreateLogGroup"
@@ -40,7 +40,7 @@ data "aws_iam_policy_document" "lambda_permissions" {
   }
 
   statement {
-    sid = "LoggingPutEvents"
+    sid = "LoggingStreamPutEvents"
 
     actions = [
       "logs:CreateLogStream",
@@ -92,7 +92,9 @@ data "aws_iam_policy_document" "lambda_permissions" {
     sid = "SQSAccess"
 
     actions = [
-      "sqs:*"
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
+      "sqs:ReceiveMessage"
     ]
 
     resources = [
