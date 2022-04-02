@@ -2,6 +2,7 @@
 import json
 import requests
 
+
 class Messenger:
 
     def __init__(self, format: str, webhook: str) -> None:
