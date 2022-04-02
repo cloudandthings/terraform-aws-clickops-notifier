@@ -33,11 +33,7 @@ variable "region" {
       "eu-west-3",
       "sa-east-1",
       "us-east-2",
-      "us-west-2",
-      "cn-north-1",
-      "cn-northwest-1",
-      "us-gov-west",
-      "us-gov-east"
+      "us-west-2"
     ], var.region)
     error_message = "Invalid region provided."
   }

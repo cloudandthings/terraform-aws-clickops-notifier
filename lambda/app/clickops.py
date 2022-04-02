@@ -55,13 +55,17 @@ class ClickOpsEventChecker:
             "sso.amazonaws.com:Logout",
             "sso.amazonaws.com:SearchUsers",
             "sso.amazonaws.com:SearchGroups",
+            "sso.amazonaws.com:CreateToken",
 
             "signin.amazonaws.com:UserAuthentication",
             "signin.amazonaws.com:SwitchRole",
             "signin.amazonaws.com:RenewRole",
             "signin.amazonaws.com:ExternalIdPDirectoryLogin",
+            "signin.amazonaws.com:CredentialVerification",
+            "signin.amazonaws.com:CredentialChallenge",
 
             "logs.amazonaws.com:StartQuery",
+            "cloudtrail.amazonaws.com:StartQuery",
 
             "iam.amazonaws.com:SimulatePrincipalPolicy",
             "iam.amazonaws.com:GenerateServiceLastAccessedDetails",
