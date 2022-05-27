@@ -12,14 +12,12 @@ provider "aws" {
 }
 
 module "clickops_notifications" {
-    source = "../"
+  source = "../"
 
-    cloudtrail_bucket_name = var.cloudtrail_bucket_name
-    webhook = var.webhook
-    region = var.region
-    message_format = "slack"
+  cloudtrail_bucket_name = var.cloudtrail_bucket_name
+  webhook                = var.webhook
+  message_format         = "slack"
 }
 
-variable "cloudtrail_bucket_name" { }
-variable "webhook" { }
-variable "region" { }
+variable "cloudtrail_bucket_name" {}
+variable "webhook" {}

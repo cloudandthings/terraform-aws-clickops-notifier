@@ -10,36 +10,6 @@ variable "webhook" {
   sensitive   = true
 }
 
-variable "region" {
-  type        = string
-  description = "Region where this will be deployed. Used for [getting the correct lambda layer]"
-
-  validation {
-    condition = contains([
-      "ap-northeast-1",
-      "us-east-1",
-      "ap-southeast-1",
-      "eu-west-1",
-      "us-west-1",
-      "ap-east-1",
-      "ap-northeast-2",
-      "ap-northeast-3",
-      "ap-south-1",
-      "ap-southeast-2",
-      "ca-central-1",
-      "eu-central-1",
-      "eu-north-1",
-      "eu-west-2",
-      "eu-west-3",
-      "sa-east-1",
-      "us-east-2",
-      "us-west-2"
-    ], var.region)
-    error_message = "Invalid region provided."
-  }
-}
-
-
 # Application Related Optional Variables
 
 variable "message_format" {
@@ -85,6 +55,12 @@ variable "naming_prefix" {
   type        = string
   description = "Resources will be prefixed with this"
   default     = "clickops-notifier"
+}
+
+variable "additional_iam_policy_statements" {
+  description = "Map of dynamic policy statements to attach to Lambda Function role"
+  type        = any
+  default     = {}
 }
 
 variable "tags" {
