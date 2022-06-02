@@ -1,51 +1,48 @@
-resource "aws_lambda_function" "func" {
+
+module "clickops_notifier_lambda" {
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v3.2.1"
 
   function_name = var.naming_prefix
-  role          = aws_iam_role.lambda.arn
+  description   = "ClickOps Notifier Lambda"
 
-  handler = "main.handler"
-  runtime = "python3.8"
-
-  filename         = data.archive_file.func.output_path
-  source_code_hash = filebase64sha256(data.archive_file.func.output_path)
+  handler     = "main.handler"
+  runtime     = "python3.9"
+  publish     = true
+  source_path = "${path.module}/lambda/app"
 
   timeout     = var.event_processing_timeout
   memory_size = 128
 
-  layers = [local.python_layers[var.region]]
+  attach_policy_json = true
+  policy_json        = data.aws_iam_policy_document.lambda_permissions.json
 
-  environment {
-    variables = {
-      WEBHOOK_PARAMETER = aws_ssm_parameter.slack_webhook.name
-      EXCLUDED_ACCOUNTS = jsonencode(var.excluded_accounts)
-      INCLUDED_ACCOUNTS = jsonencode(var.included_accounts)
+  attach_policy_statements = true
+  policy_statements        = var.additional_iam_policy_statements
 
-      EXCLUDED_USERS = jsonencode(var.excluded_users)
-      INCLUDED_USERS = jsonencode(var.included_users)
+  cloudwatch_logs_retention_in_days = var.log_retention_in_days
 
-      MESSAGE_FORMAT = var.message_format
+  environment_variables = {
+    WEBHOOK_PARAMETER = aws_ssm_parameter.slack_webhook.name
+    EXCLUDED_ACCOUNTS = jsonencode(var.excluded_accounts)
+    INCLUDED_ACCOUNTS = jsonencode(var.included_accounts)
 
-      LOG_LEVEL = "INFO"
+    EXCLUDED_USERS = jsonencode(var.excluded_users)
+    INCLUDED_USERS = jsonencode(var.included_users)
+
+    MESSAGE_FORMAT = var.message_format
+
+    LOG_LEVEL = "INFO"
+  }
+
+  event_source_mapping = {
+    sqs = {
+      event_source_arn                   = aws_sqs_queue.bucket_notifications.arn
+      batch_size                         = var.event_batch_size
+      maximum_batching_window_in_seconds = var.event_maximum_batching_window
     }
   }
 
   tags = var.tags
-}
-
-data "archive_file" "func" {
-  type             = "zip"
-  source_dir       = "${path.module}/lambda/app"
-  output_file_mode = "0666"
-  output_path      = "${path.module}/lambda.zip"
-}
-
-resource "aws_lambda_event_source_mapping" "bucket_notifications" {
-  event_source_arn = aws_sqs_queue.bucket_notifications.arn
-  function_name    = aws_lambda_function.func.arn
-
-  batch_size                         = var.event_batch_size
-  maximum_batching_window_in_seconds = var.event_maximum_batching_window
-
 }
 
 resource "aws_ssm_parameter" "slack_webhook" {
