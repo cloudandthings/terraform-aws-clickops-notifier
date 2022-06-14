@@ -16,7 +16,7 @@ module "clickops_notifier_lambda" {
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.lambda_permissions.json
 
-  attach_policy_statements = true
+  attach_policy_statements = length(var.additional_iam_policy_statements) > 0
   policy_statements        = var.additional_iam_policy_statements
 
   cloudwatch_logs_retention_in_days = var.log_retention_in_days
