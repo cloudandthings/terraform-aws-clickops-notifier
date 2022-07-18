@@ -96,7 +96,7 @@ variable "log_retention_in_days" {
 variable "lambda_runtime" {
   type        = string
   description = "The lambda runtime to use"
-  default     = "python3.9"
+  default     = "python3.8"
 
   validation {
     condition = contains([
