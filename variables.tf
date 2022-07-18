@@ -93,3 +93,18 @@ variable "log_retention_in_days" {
   default     = 14
 }
 
+variable "lambda_runtime" {
+  type        = string
+  description = "The lambda runtime to use"
+  default     = "python3.9"
+
+  validation {
+    condition = contains([
+      "python3.9",
+      "python3.8",
+      "python3.7",
+      "python3.6"
+    ], var.lambda_runtime)
+    error_message = "Invalid lambda_runtime provided."
+  }
+}

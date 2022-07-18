@@ -6,7 +6,7 @@ module "clickops_notifier_lambda" {
   description   = "ClickOps Notifier Lambda"
 
   handler     = "main.handler"
-  runtime     = "python3.9"
+  runtime     = var.lambda_runtime
   publish     = true
   source_path = "${path.module}/lambda/app"
 
