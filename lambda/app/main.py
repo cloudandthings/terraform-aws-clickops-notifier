@@ -10,7 +10,6 @@ from typing import Tuple
 from clickops import ClickOpsEventChecker, CloudTrailEvent
 from messenger import Messenger
 
-
 s3 = boto3.client('s3')
 ssm = boto3.client('ssm')
 
@@ -129,7 +128,8 @@ def handler(event, context) -> None:  # noqa: C901
                         if not is_valid_user:
                             continue
 
-                        clickops_checker = ClickOpsEventChecker(cloudtrail_event, EXCLUDED_SCOPED_ACTIONS)
+                        clickops_checker = ClickOpsEventChecker(cloudtrail_event,
+                                                                EXCLUDED_SCOPED_ACTIONS)
 
                         is_clickops, reason = clickops_checker.is_clickops()
 
