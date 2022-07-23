@@ -1,6 +1,6 @@
 import re
 import json
-from typing import Tuple
+from typing import Tuple, List
 
 
 class CloudTrailEvent:
@@ -38,7 +38,8 @@ class CloudTrailEvent:
 
 
 class ClickOpsEventChecker:
-    def __init__(self, event: CloudTrailEvent) -> None:
+    def __init__(self, event: CloudTrailEvent, ignored_scoped_events: List[str]) -> None:
+
         self.READONLY_EVENTS_RE = [
             "^Get",
             "^Describe",
@@ -46,50 +47,7 @@ class ClickOpsEventChecker:
             "^Head",
         ]
 
-        self.IGNORED_SCOPED_EVENTS = [
-            "cognito-idp.amazonaws.com:InitiateAuth",
-            "cognito-idp.amazonaws.com:RespondToAuthChallenge",
-
-            "sso.amazonaws.com:Federate",
-            "sso.amazonaws.com:Authenticate",
-            "sso.amazonaws.com:Logout",
-            "sso.amazonaws.com:SearchUsers",
-            "sso.amazonaws.com:SearchGroups",
-            "sso.amazonaws.com:CreateToken",
-
-            "signin.amazonaws.com:UserAuthentication",
-            "signin.amazonaws.com:SwitchRole",
-            "signin.amazonaws.com:RenewRole",
-            "signin.amazonaws.com:ExternalIdPDirectoryLogin",
-            "signin.amazonaws.com:CredentialVerification",
-            "signin.amazonaws.com:CredentialChallenge",
-
-            "logs.amazonaws.com:StartQuery",
-            "cloudtrail.amazonaws.com:StartQuery",
-
-            "iam.amazonaws.com:SimulatePrincipalPolicy",
-            "iam.amazonaws.com:GenerateServiceLastAccessedDetails",
-
-            "glue.amazonaws.com:BatchGetJobs",
-            "glue.amazonaws.com:BatchGetCrawlers",
-            "glue.amazonaws.com:StartJobRun",
-            "glue.amazonaws.com:StartCrawler",
-
-            "athena.amazonaws.com:StartQueryExecution",
-
-            "servicecatalog.amazonaws.com:SearchProductsAsAdmin",
-            "servicecatalog.amazonaws.com:SearchProducts",
-            "servicecatalog.amazonaws.com:SearchProvisionedProducts",
-            "servicecatalog.amazonaws.com:TerminateProvisionedProduct",
-
-            "cloudshell.amazonaws.com:CreateSession",
-            "cloudshell.amazonaws.com:PutCredentials",
-            "cloudshell.amazonaws.com:SendHeartBeat",
-            "cloudshell.amazonaws.com:CreateEnvironment",
-
-            "kms.amazonaws.com:Decrypt",
-            "kms.amazonaws.com:RetireGrant",
-        ]
+        self.IGNORED_SCOPED_EVENTS = ignored_scoped_events
 
         self.IGNORED_EVENTS = {
             "DownloadDBLogFilePortion",
