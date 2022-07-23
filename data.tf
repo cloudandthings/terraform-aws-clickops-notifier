@@ -2,8 +2,6 @@ data "aws_s3_bucket" "cloudtrail_bucket" {
   bucket = var.cloudtrail_bucket_name
 }
 
-data "aws_caller_identity" "current" {}
-
 locals {
   ignored_scoped_events_built_in = [
     "cognito-idp.amazonaws.com:InitiateAuth",
@@ -50,5 +48,5 @@ locals {
     "kms.amazonaws.com:RetireGrant",
   ]
 
-  ignored_scoped_events = var.excluded_scoped_actions_effect == "APPEND" ? concat(local.ignored_scoped_events_built_in, var.ignored_scoped_events) : var.ignored_scoped_events
+  ignored_scoped_events = var.excluded_scoped_actions_effect == "APPEND" ? concat(local.ignored_scoped_events_built_in, var.excluded_scoped_actions) : var.excluded_scoped_actions
 }

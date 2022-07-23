@@ -65,7 +65,7 @@ variable "excluded_scoped_actions_effect" {
       "APPEND",
       "REPLACE"
     ], var.excluded_scoped_actions_effect)
-    error_message = "Invalid excluded_scoped_actions_effect provided. Should be one of: APPEND, REPLACE"
+    error_message = "Invalid excluded_scoped_actions_effect provided. Should be one of: APPEND, REPLACE."
   }
 }
 

@@ -1,5 +1,6 @@
 # https://pre-commit.com/
 # brew install pre-commit
+# brew install tflint
 # pre-commit install
 repos:
   - repo: https://github.com/antonbabenko/pre-commit-terraform

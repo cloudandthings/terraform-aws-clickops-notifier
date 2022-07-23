@@ -1,4 +1,3 @@
-
 module "clickops_notifier_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "3.2.1"
@@ -24,13 +23,14 @@ module "clickops_notifier_lambda" {
 
   environment_variables = {
     WEBHOOK_PARAMETER = aws_ssm_parameter.slack_webhook.name
+
     EXCLUDED_ACCOUNTS = jsonencode(var.excluded_accounts)
     INCLUDED_ACCOUNTS = jsonencode(var.included_accounts)
 
     EXCLUDED_USERS = jsonencode(var.excluded_users)
     INCLUDED_USERS = jsonencode(var.included_users)
 
-    EXCLUDED_SCOPED_ACTIONS = jsonencode(local.excluded_scoped_actions)
+    EXCLUDED_SCOPED_ACTIONS = jsonencode(local.ignored_scoped_events)
 
     MESSAGE_FORMAT = var.message_format
 
