@@ -43,10 +43,30 @@ variable "excluded_users" {
   description = "List of email addresses will not be reported on when practicing ClickOps."
   default     = []
 }
+
 variable "included_users" {
   type        = list(string)
   description = "List of emails that be scanned to manual actions. If empty will scan all emails."
   default     = []
+}
+
+variable "excluded_scoped_actions" {
+  type        = list(string)
+  description = "A list of service scoped actions that will not be alerted on. Format {{service}}.amazonaws.com:{{action}}"
+  default     = []
+}
+
+variable "excluded_scoped_actions_effect" {
+  type        = string
+  description = "Should the existing exluded actions be replaces or appended to. By default it will append to the list, valid values: APPEND, REPLACE"
+  default     = "APPEND"
+  validation {
+    condition = contains([
+      "APPEND",
+      "REPLACE"
+    ], var.excluded_scoped_actions_effect)
+    error_message = "Invalid excluded_scoped_actions_effect provided. Should be one of: APPEND, REPLACE"
+  }
 }
 
 # Infrastructure optional variables

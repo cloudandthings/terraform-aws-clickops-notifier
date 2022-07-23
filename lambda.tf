@@ -1,6 +1,7 @@
 
 module "clickops_notifier_lambda" {
-  source = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v3.2.1"
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "3.2.1"
 
   function_name = var.naming_prefix
   description   = "ClickOps Notifier Lambda"
@@ -28,6 +29,8 @@ module "clickops_notifier_lambda" {
 
     EXCLUDED_USERS = jsonencode(var.excluded_users)
     INCLUDED_USERS = jsonencode(var.included_users)
+
+    EXCLUDED_SCOPED_ACTIONS = jsonencode(local.excluded_scoped_actions)
 
     MESSAGE_FORMAT = var.message_format
 
