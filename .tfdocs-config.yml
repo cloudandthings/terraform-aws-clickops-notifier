@@ -19,7 +19,7 @@ content: |-
   ### Examples
 
   ```hcl
-  {{ include "examples/sample.tf" }}
+  {{ include "examples/basic/main.tf" }}
   ```  
   ----
   {{ .Inputs }}   
