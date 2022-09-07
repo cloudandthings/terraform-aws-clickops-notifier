@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.2.0...v1.3.0) (2022-09-07)
+
+
+### Features
+
+* Add check for `sessionCredentialFromConsole` ([#26](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/26)) ([b944f3a](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/b944f3a30a442b2bd3fea0d6a8fbe75c38648ab7))
+
 ## [1.2.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.1.1...v1.2.0) (2022-07-23)
 
 
