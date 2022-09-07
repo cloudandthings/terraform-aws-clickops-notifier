@@ -45,8 +45,8 @@
     "sessionCredentialFromConsole": "true"
   },
   "expect": {
-    "is_clickops": false,
-    "reason_contains": "[COEC_Rule2]",
+    "is_clickops": true,
+    "reason_contains": "[COEC_Rule6]",
     "user_email": "paul@cloudandthings.io",
     "readonly": false
   }
