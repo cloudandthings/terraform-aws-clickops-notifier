@@ -1,0 +1,52 @@
+{
+  "event": {
+    "eventVersion": "1.08",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "principalId": "AROA5L7R6SJPLS7EBCJPP:paul@cloudandthings.io",
+      "arn": "arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_AWSAdministratorAccess_4cd06aad9151ee95/paul@cloudandthings.io",
+      "accountId": "123456789012",
+      "accessKeyId": "ASIA5L7R6SJPE5UL5SN6",
+      "sessionContext": {
+        "sessionIssuer": {
+          "type": "Role",
+          "principalId": "AROA5L7R6SJPLS7EBCJPP",
+          "arn": "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_AWSAdministratorAccess_4cd06aad9151ee95",
+          "accountId": "123456789012",
+          "userName": "AWSReservedSSO_AWSAdministratorAccess_4cd06aad9151ee95"
+        },
+        "webIdFederationData": {},
+        "attributes": {
+          "creationDate": "2022-09-06T13:16:33Z",
+          "mfaAuthenticated": "false"
+        }
+      }
+    },
+    "eventTime": "2022-09-06T14:03:07Z",
+    "eventSource": "route53.amazonaws.com",
+    "eventName": "ListResourceRecordSets",
+    "awsRegion": "us-east-1",
+    "sourceIPAddress": "AWS Internal",
+    "userAgent": "AWS Internal",
+    "requestParameters": {
+      "hostedZoneId": "ZXXXXXXXXXXXXXXXXXXX",
+      "maxItems": "300"
+    },
+    "responseElements": null,
+    "requestID": "e20b0df6-aa92-4b19-a7d5-bb4d278ccd3d",
+    "eventID": "dfb675f6-cb3a-47c7-b5bc-ad0613403d6b",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "apiVersion": "2013-05-27",
+    "managementEvent": true,
+    "recipientAccountId": "123456789012",
+    "eventCategory": "Management",
+    "sessionCredentialFromConsole": "true"
+  },
+  "expect": {
+    "is_clickops": false,
+    "reason_contains": "[COEC_Rule1]",
+    "user_email": "paul@cloudandthings.io",
+    "readonly": true
+  }
+}

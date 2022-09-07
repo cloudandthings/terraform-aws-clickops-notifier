@@ -12,6 +12,7 @@ class CloudTrailEvent:
         self.request_id = event.get('requestID', "NA")
         self.read_only = self.__readonly_event(event)
         self.user_email = self.__user_email(event)
+        self.console_session = self.__console_session_event(event)
 
     @staticmethod
     def __user_email(event) -> str:
@@ -30,6 +31,18 @@ class CloudTrailEvent:
     def __readonly_event(event) -> bool:
         if 'readOnly' in event:
             if event['readOnly'] == 'true' or event['readOnly'] or event['readOnly'] == 1:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    @staticmethod
+    def __console_session_event(event) -> bool:
+        if 'sessionCredentialFromConsole' in event:
+            if event['sessionCredentialFromConsole'] == 'true' or \
+               event['sessionCredentialFromConsole'] or \
+               event['sessionCredentialFromConsole'] == 1:
                 return True
             else:
                 return False
@@ -113,7 +126,7 @@ class ClickOpsEventChecker:
         if self.event.read_only:
             return False, "[COEC_Rule1] Readonly Event"
 
-        if not self.__user_agent_console():
+        if not self.__user_agent_console() and not self.event.console_session:
             return False, "[COEC_Rule2] User agent does not match console"
 
         if self.__match_readonly_event_name_pattern():
