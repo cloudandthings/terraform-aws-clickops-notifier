@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.3.0...v1.4.0) (2022-10-26)
+
+
+### Features
+
+* Update default exclusions and update variable description ([#30](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/30)) ([bd9b7e8](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/bd9b7e84d2b1dfc43e58fe331b0276cc7271b1e9))
+
 ## [1.3.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.2.0...v1.3.0) (2022-09-07)
 
 
