@@ -67,7 +67,7 @@ module "clickops_notifications" {
 | <a name="input_included_users"></a> [included\_users](#input\_included\_users) | List of emails that be scanned to manual actions. If empty will scan all emails. | `list(string)` | `[]` | no |
 | <a name="input_lambda_runtime"></a> [lambda\_runtime](#input\_lambda\_runtime) | The lambda runtime to use | `string` | `"python3.8"` | no |
 | <a name="input_log_retention_in_days"></a> [log\_retention\_in\_days](#input\_log\_retention\_in\_days) | Number of days to keep CloudWatch logs | `number` | `14` | no |
-| <a name="input_message_format"></a> [message\_format](#input\_message\_format) | Where do you want to send this message? Only slack, for now. | `string` | `"slack"` | no |
+| <a name="input_message_format"></a> [message\_format](#input\_message\_format) | Where do you want to send this message? slack or msteams | `string` | `"slack"` | no |
 | <a name="input_naming_prefix"></a> [naming\_prefix](#input\_naming\_prefix) | Resources will be prefixed with this | `string` | `"clickops-notifier"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to add to resources in addition to the default\_tags for the provider | `map(string)` | `{}` | no |
 | <a name="input_webhook"></a> [webhook](#input\_webhook) | The webhook URL for notifications. https://api.slack.com/messaging/webhooks | `string` | n/a | yes |
@@ -89,7 +89,7 @@ module "clickops_notifications" {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.29.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.36.1 |
 ----
 ### Requirements
 
@@ -129,6 +129,7 @@ locals {
     "signin.amazonaws.com:ExternalIdPDirectoryLogin",
     "signin.amazonaws.com:CredentialVerification",
     "signin.amazonaws.com:CredentialChallenge",
+    "signin.amazonaws.com:CheckMfa",
 
     "logs.amazonaws.com:StartQuery",
     "cloudtrail.amazonaws.com:StartQuery",
