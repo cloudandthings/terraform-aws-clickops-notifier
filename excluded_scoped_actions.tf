@@ -16,6 +16,7 @@ locals {
     "signin.amazonaws.com:ExternalIdPDirectoryLogin",
     "signin.amazonaws.com:CredentialVerification",
     "signin.amazonaws.com:CredentialChallenge",
+    "signin.amazonaws.com:CheckMfa",
 
     "logs.amazonaws.com:StartQuery",
     "cloudtrail.amazonaws.com:StartQuery",

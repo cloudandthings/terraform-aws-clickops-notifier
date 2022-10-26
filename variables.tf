@@ -14,7 +14,7 @@ variable "webhook" {
 
 variable "message_format" {
   type        = string
-  description = "Where do you want to send this message? Only slack, for now."
+  description = "Where do you want to send this message? slack or msteams"
   default     = "slack"
 
   validation {
