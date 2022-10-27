@@ -56,6 +56,7 @@ module "clickops_notifications" {
 |------|-------------|------|---------|:--------:|
 | <a name="input_additional_iam_policy_statements"></a> [additional\_iam\_policy\_statements](#input\_additional\_iam\_policy\_statements) | Map of dynamic policy statements to attach to Lambda Function role | `any` | `{}` | no |
 | <a name="input_cloudtrail_bucket_name"></a> [cloudtrail\_bucket\_name](#input\_cloudtrail\_bucket\_name) | Bucket containing the Cloudtrail logs that you want to process. ControlTower bucket name follows this naming convention `aws-controltower-logs-{{account_id}}-{{region}}` | `string` | n/a | yes |
+| <a name="input_create_iam_role"></a> [create\_iam\_role](#input\_create\_iam\_role) | Determines whether a an IAM role is created or to use an existing IAM role | `bool` | `true` | no |
 | <a name="input_event_batch_size"></a> [event\_batch\_size](#input\_event\_batch\_size) | Batch events into chunks of `event_batch_size` | `number` | `10` | no |
 | <a name="input_event_maximum_batching_window"></a> [event\_maximum\_batching\_window](#input\_event\_maximum\_batching\_window) | Maximum batching window in seconds. | `number` | `300` | no |
 | <a name="input_event_processing_timeout"></a> [event\_processing\_timeout](#input\_event\_processing\_timeout) | Maximum number of seconds the lambda is allowed to run and number of seconds events should be hidden in SQS after being picked up my Lambda. | `number` | `60` | no |
@@ -63,6 +64,7 @@ module "clickops_notifications" {
 | <a name="input_excluded_scoped_actions"></a> [excluded\_scoped\_actions](#input\_excluded\_scoped\_actions) | A list of service scoped actions that will not be alerted on. Format {{service}}.amazonaws.com:{{action}} | `list(string)` | `[]` | no |
 | <a name="input_excluded_scoped_actions_effect"></a> [excluded\_scoped\_actions\_effect](#input\_excluded\_scoped\_actions\_effect) | Should the existing exluded actions be replaces or appended to. By default it will append to the list, valid values: APPEND, REPLACE | `string` | `"APPEND"` | no |
 | <a name="input_excluded_users"></a> [excluded\_users](#input\_excluded\_users) | List of email addresses will not be reported on when practicing ClickOps. | `list(string)` | `[]` | no |
+| <a name="input_iam_role_arn"></a> [iam\_role\_arn](#input\_iam\_role\_arn) | Existing IAM role ARN for the lambda. Required if `create_iam_role` is set to `false` | `string` | `""` | no |
 | <a name="input_included_accounts"></a> [included\_accounts](#input\_included\_accounts) | List of accounts that be scanned to manual actions. If empty will scan all accounts. | `list(string)` | `[]` | no |
 | <a name="input_included_users"></a> [included\_users](#input\_included\_users) | List of emails that be scanned to manual actions. If empty will scan all emails. | `list(string)` | `[]` | no |
 | <a name="input_lambda_runtime"></a> [lambda\_runtime](#input\_lambda\_runtime) | The lambda runtime to use | `string` | `"python3.8"` | no |
