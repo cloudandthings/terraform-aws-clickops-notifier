@@ -24,7 +24,7 @@ locals {
     run    = random_pet.run_id.id
   }
 
-  naming_prefix = "clickops-test-basic-${random_pet.run_id.id}"
+  naming_prefix = "clickops-test-role-${random_pet.run_id.id}"
 }
 
 resource "random_pet" "run_id" {
@@ -42,8 +42,30 @@ module "clickops_notifications" {
   webhook                = "https://fake.com"
   message_format         = "slack"
   tags                   = local.tags
+
+  create_iam_role = false
+  iam_role_arn    = aws_iam_role.test_role.arn
 }
 
+resource "aws_iam_role" "test_role" {
+  name = local.naming_prefix
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      },
+    ]
+  })
+
+  tags = local.tags
+}
 
 resource "aws_s3_bucket" "test_bucket" {
   bucket = local.naming_prefix

@@ -1,0 +1,10 @@
+black==22.10.0
+boto3==1.25.3
+fabric==2.7.1
+flake8==5.0.4
+mock==4.0.3
+pre-commit
+pytest
+pytest-depends
+PyYAML
+tftest==1.7.4
