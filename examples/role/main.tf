@@ -67,6 +67,13 @@ resource "aws_iam_role" "test_role" {
   tags = local.tags
 }
 
+resource "aws_iam_role_policy_attachment" "test_attach" {
+  role       = aws_iam_role.test_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
+}
+
+
+
 resource "aws_s3_bucket" "test_bucket" {
   bucket = local.naming_prefix
   tags   = local.tags

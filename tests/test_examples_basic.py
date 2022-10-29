@@ -5,7 +5,7 @@ from conftest import terraform_apply
 
 @pytest.fixture(scope="session")
 def plan(terraform_config):
-    yield from terraform_apply(__name__, terraform_config)
+    yield from terraform_apply("examples_basic", terraform_config)
 
 
 @pytest.mark.slow

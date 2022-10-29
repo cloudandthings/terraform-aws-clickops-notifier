@@ -4,27 +4,14 @@ on: [workflow_dispatch, pull_request]
 
 env:
   AWS_REGION: eu-west-1
+  TF_VAR_run_id: ${{ github.run_id }}
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  python_lint:
-    name: 🐍 Python file formatting
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          pip install -r tests/requirements.txt
-          flake8
-          black .
-
   testing:
-    needs: [python_lint]
     name: ✅ Testing
     runs-on: ubuntu-latest
     steps:
@@ -34,7 +21,6 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          role-duration-seconds: 3600
       - uses: actions/setup-python@v2
       - uses: hashicorp/setup-terraform@v2
       - name: Install tests
@@ -45,7 +31,7 @@ jobs:
       - name: Execute tests
         run: |
           source .venv/bin/activate
-          pytest --run-id ${{ github.run_id }}
+          pytest
         env:
           PYTEST_ADDOPTS: "--color=yes"
         timeout-minutes: 30

@@ -2,7 +2,6 @@ import pytest
 import tftest
 import os
 import logging
-import json
 
 
 def pytest_addoption(parser):
@@ -17,15 +16,6 @@ def profile(request):
     if profile is None:
         raise Exception("--profile must be specified")
     return profile
-
-
-@pytest.fixture(scope="session")
-def terraform_default_variables(request):
-    """Return default Terraform variables."""
-    variables = {"run_id": request.config.getoption("--run-id")}
-    if variables["run_id"] is None:
-        raise Exception("--run_id must be specified")
-    return variables
 
 
 def terraform_examples_dir():
@@ -47,14 +37,12 @@ def terraform_examples():
 
 @pytest.fixture(scope="session")
 def terraform_config(
-    terraform_binary, terraform_tests, terraform_examples, terraform_default_variables
+    terraform_binary, terraform_examples
 ):
     """Convenience fixture for passing around config."""
     config = {
         "terraform_binary": terraform_binary,
-        "terraform_tests": terraform_tests,
-        "terraform_examples": terraform_examples,
-        "terraform_default_variables": terraform_default_variables,
+        "terraform_examples": terraform_examples
     }
     logging.info(config)
     return config
@@ -75,11 +63,10 @@ def get_tf(test_name, terraform_config, variables=None):
     tf = tftest.TerraformTest(
         tfdir=test_name, basedir=basedir, binary=terraform_config["terraform_binary"]
     )
-    # Populate test.auto.tfvars.json with the specified variables
-    variables = variables or {}
-    variables = {**terraform_config["terraform_default_variables"], **variables}
-    with open(os.path.join(basedir, test_name, "test.auto.tfvars.json"), "w") as f:
-        json.dump(variables, f)
+    # # Populate test.auto.tfvars.json with the specified variables
+    # variables = variables or {}
+    # with open(os.path.join(basedir, test_name, "test.auto.tfvars.json"), "w") as f:
+    #     json.dump(variables, f)
     tf.setup()
     return tf
 
