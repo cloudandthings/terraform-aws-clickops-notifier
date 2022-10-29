@@ -39,3 +39,5 @@ sample/plan
 
 sam/packaged.yaml
 sam/.aws-sam/
+
+.venv/

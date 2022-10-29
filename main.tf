@@ -13,6 +13,9 @@ module "clickops_notifier_lambda" {
   timeout     = var.event_processing_timeout
   memory_size = 128
 
+  create_role = var.create_iam_role
+  lambda_role = var.iam_role_arn
+
   attach_policy_json = true
   policy_json        = data.aws_iam_policy_document.lambda_permissions.json
 

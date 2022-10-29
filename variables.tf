@@ -128,3 +128,16 @@ variable "lambda_runtime" {
     error_message = "Invalid lambda_runtime provided."
   }
 }
+
+# IAM Setup
+variable "create_iam_role" {
+  description = "Determines whether a an IAM role is created or to use an existing IAM role"
+  type        = bool
+  default     = true
+}
+
+variable "iam_role_arn" {
+  description = "Existing IAM role ARN for the lambda. Required if `create_iam_role` is set to `false`"
+  type        = string
+  default     = ""
+}
