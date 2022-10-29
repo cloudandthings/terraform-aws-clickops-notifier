@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.4.0...v1.5.0) (2022-10-29)
+
+
+### Features
+
+* Allow user provided IAM role ([#32](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/32)) ([ade5f2e](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/ade5f2e582ffd51a51500308407e9d5b610ca7f7))
+
 ## [1.4.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.3.0...v1.4.0) (2022-10-26)
 
 
