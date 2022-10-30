@@ -3,15 +3,15 @@
 Get notified when users are taking actions in the AWS Console. More [here](https://medium.com/cloudandthings/aws-clickoops-1b8cabc9b8e3)
 ## 🏗️ Module Usage
 
-It is not strictly a requirement, that you use this with AWS ControlTower. The module has only been tested in the Log Archive account that ships with AWS ControTower. Setup your AWS credentails such that `aws sts get-caller-identity | grep Account` gives you your ControlTower Log Archive account id.
+It is not strictly a requirement, that you use this with AWS ControlTower. The module has only been tested in the Log Archive account that ships with AWS ControlTower. Setup your AWS credentails such that `aws sts get-caller-identity | grep Account` gives you your ControlTower Log Archive account id.
 
 
 ## Excluded scoped actions
-The following actions will not be alerted, these are eithe:
+The following actions will not be alerted, these are either:
 - actions that are commonly performed in the AWS Console and we think they are okay
 - actions that can only be performed in the AWS Console
 
-This functionality an be overriden with the `excluded_scoped_actions` and `excluded_scoped_actions_effect` variables. The list of excluded actions availabe in the terraform docs below.
+This functionality can be overriden with the `excluded_scoped_actions` and `excluded_scoped_actions_effect` variables. The list of excluded actions is available in the terraform docs below.
 
 
 ## Contributing
