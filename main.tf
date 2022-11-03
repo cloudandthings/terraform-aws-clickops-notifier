@@ -11,7 +11,7 @@ module "clickops_notifier_lambda" {
   source_path = "${path.module}/lambda/app"
 
   timeout     = var.event_processing_timeout
-  memory_size = 128
+  memory_size = var.lambda_memory_size
 
   create_role = var.create_iam_role
   lambda_role = var.iam_role_arn
