@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.5.0...v1.6.0) (2022-11-07)
+
+
+### Features
+
+* Allow lambda memory size setting ([#34](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/34)) and Add TrustedAdvisor refresh checks to exclusions ([#21](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/21)) ([94aa7db](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/94aa7dbb5d91d898ba8e6ee7f3eb1256c51f9989))
+
 ## [1.5.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.4.0...v1.5.0) (2022-10-29)
 
 
