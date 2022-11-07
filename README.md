@@ -96,6 +96,7 @@ resource "aws_s3_bucket" "test_bucket" {
 | <a name="input_iam_role_arn"></a> [iam\_role\_arn](#input\_iam\_role\_arn) | Existing IAM role ARN for the lambda. Required if `create_iam_role` is set to `false` | `string` | `""` | no |
 | <a name="input_included_accounts"></a> [included\_accounts](#input\_included\_accounts) | List of accounts that be scanned to manual actions. If empty will scan all accounts. | `list(string)` | `[]` | no |
 | <a name="input_included_users"></a> [included\_users](#input\_included\_users) | List of emails that be scanned to manual actions. If empty will scan all emails. | `list(string)` | `[]` | no |
+| <a name="input_lambda_memory_size"></a> [lambda\_memory\_size](#input\_lambda\_memory\_size) | The amount of memory for Lambda to use | `number` | `"128"` | no |
 | <a name="input_lambda_runtime"></a> [lambda\_runtime](#input\_lambda\_runtime) | The lambda runtime to use | `string` | `"python3.8"` | no |
 | <a name="input_log_retention_in_days"></a> [log\_retention\_in\_days](#input\_log\_retention\_in\_days) | Number of days to keep CloudWatch logs | `number` | `14` | no |
 | <a name="input_message_format"></a> [message\_format](#input\_message\_format) | Where do you want to send this message? slack or msteams | `string` | `"slack"` | no |
@@ -120,7 +121,7 @@ resource "aws_s3_bucket" "test_bucket" {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.37.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.38.0 |
 ----
 ### Requirements
 
@@ -187,6 +188,8 @@ locals {
 
     "kms.amazonaws.com:Decrypt",
     "kms.amazonaws.com:RetireGrant",
+
+    "trustedadvisor.amazonaws.com:RefreshCheck",
   ]
 }
 ```

@@ -129,6 +129,12 @@ variable "lambda_runtime" {
   }
 }
 
+variable "lambda_memory_size" {
+  type        = number
+  description = "The amount of memory for Lambda to use"
+  default     = "128"
+}
+
 # IAM Setup
 variable "create_iam_role" {
   description = "Determines whether a an IAM role is created or to use an existing IAM role"
