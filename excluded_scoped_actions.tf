@@ -43,5 +43,7 @@ locals {
 
     "kms.amazonaws.com:Decrypt",
     "kms.amazonaws.com:RetireGrant",
+    
+    "trustedadvisor.amazonaws.com:RefreshCheck",
   ]
 }
