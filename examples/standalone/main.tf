@@ -34,14 +34,19 @@ resource "random_pet" "run_id" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "this" {
+  name              = local.naming_prefix
+  retention_in_days = 1
+}
+
 module "clickops_notifications" {
   source = "../../"
 
   standalone           = true
   naming_prefix        = local.naming_prefix
-  cloudtrail_log_group = "aws-controltower/CloudTrailLogs"
+  cloudtrail_log_group = aws_cloudwatch_log_group.this.name
   webhook              = "https://fake.com"
   message_format       = "slack"
   tags                 = local.tags
-  lambda_runtime       = "python3.9"
+  lambda_runtime       = "python3.8"
 }
