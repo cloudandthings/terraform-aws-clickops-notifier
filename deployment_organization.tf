@@ -22,6 +22,11 @@ data "aws_iam_policy_document" "bucket_notifications" {
 
     resources = [aws_sqs_queue.bucket_notifications[0].arn]
 
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
     condition {
       test     = "ArnEquals"
       variable = "aws:SourceArn"
