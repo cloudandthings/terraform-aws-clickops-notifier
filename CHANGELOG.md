@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.6.0...v2.0.0) (2022-12-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* Add support for standalone deployments. (#38)
+
+### Features
+
+* Add support for standalone deployments. ([#38](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/38)) ([d64f647](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/d64f6479ee505c19cbc75c1d518d763e54d4a004))
+
 ## [1.6.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.5.0...v1.6.0) (2022-11-07)
 
 
