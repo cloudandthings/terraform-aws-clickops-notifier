@@ -1,10 +1,13 @@
+[![Tests](https://github.com/cloudandthings/terraform-aws-clickops-notifier/actions/workflows/tests.yml/badge.svg)](https://github.com/cloudandthings/terraform-aws-clickops-notifier/actions/workflows/tests.yml)
+
 # AWS ClickOps Notifier
-
 Get notified when users are taking actions in the AWS Console. More [here](https://medium.com/cloudandthings/aws-clickoops-1b8cabc9b8e3)
-## 🏗️ Module Usage
 
+## 🏗️ Module Usage
 It is not strictly a requirement, that you use this with AWS ControlTower. The module has only been tested in the Log Archive account that ships with AWS ControlTower. Setup your AWS credentails such that `aws sts get-caller-identity | grep Account` gives you your ControlTower Log Archive account id.
 
+### Organizational Mode vs Standalone Mode
+If your account is part of an AWS Organization that does not use centralized CloudTrail logging or that does not want to monitor ClickOps at an organizational level, you can deploy ClickOps in `standalone` mode in a single account. For standalone mode you need CloudTrail enabled in your account, have it configured to write logs to a CloudWatch Log Group and have sufficient permission to create a subscription filter on the log group.
 
 ## Excluded scoped actions
 The following actions will not be alerted, these are either:
@@ -12,6 +15,7 @@ The following actions will not be alerted, these are either:
 - actions that can only be performed in the AWS Console
 
 This functionality can be overriden with the `excluded_scoped_actions` and `excluded_scoped_actions_effect` variables. The list of excluded actions is available in the terraform docs below.
+
 
 
 ## Contributing
@@ -84,7 +88,8 @@ resource "aws_s3_bucket" "test_bucket" {
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_additional_iam_policy_statements"></a> [additional\_iam\_policy\_statements](#input\_additional\_iam\_policy\_statements) | Map of dynamic policy statements to attach to Lambda Function role | `any` | `{}` | no |
-| <a name="input_cloudtrail_bucket_name"></a> [cloudtrail\_bucket\_name](#input\_cloudtrail\_bucket\_name) | Bucket containing the Cloudtrail logs that you want to process. ControlTower bucket name follows this naming convention `aws-controltower-logs-{{account_id}}-{{region}}` | `string` | n/a | yes |
+| <a name="input_cloudtrail_bucket_name"></a> [cloudtrail\_bucket\_name](#input\_cloudtrail\_bucket\_name) | Bucket containing the Cloudtrail logs that you want to process. ControlTower bucket name follows this naming convention `aws-controltower-logs-{{account_id}}-{{region}}` | `string` | `""` | no |
+| <a name="input_cloudtrail_log_group"></a> [cloudtrail\_log\_group](#input\_cloudtrail\_log\_group) | CloudWatch Log group for CloudTrail events. | `string` | `""` | no |
 | <a name="input_create_iam_role"></a> [create\_iam\_role](#input\_create\_iam\_role) | Determines whether a an IAM role is created or to use an existing IAM role | `bool` | `true` | no |
 | <a name="input_event_batch_size"></a> [event\_batch\_size](#input\_event\_batch\_size) | Batch events into chunks of `event_batch_size` | `number` | `10` | no |
 | <a name="input_event_maximum_batching_window"></a> [event\_maximum\_batching\_window](#input\_event\_maximum\_batching\_window) | Maximum batching window in seconds. | `number` | `300` | no |
@@ -93,7 +98,7 @@ resource "aws_s3_bucket" "test_bucket" {
 | <a name="input_excluded_scoped_actions"></a> [excluded\_scoped\_actions](#input\_excluded\_scoped\_actions) | A list of service scoped actions that will not be alerted on. Format {{service}}.amazonaws.com:{{action}} | `list(string)` | `[]` | no |
 | <a name="input_excluded_scoped_actions_effect"></a> [excluded\_scoped\_actions\_effect](#input\_excluded\_scoped\_actions\_effect) | Should the existing exluded actions be replaces or appended to. By default it will append to the list, valid values: APPEND, REPLACE | `string` | `"APPEND"` | no |
 | <a name="input_excluded_users"></a> [excluded\_users](#input\_excluded\_users) | List of email addresses will not be reported on when practicing ClickOps. | `list(string)` | `[]` | no |
-| <a name="input_iam_role_arn"></a> [iam\_role\_arn](#input\_iam\_role\_arn) | Existing IAM role ARN for the lambda. Required if `create_iam_role` is set to `false` | `string` | `""` | no |
+| <a name="input_iam_role_arn"></a> [iam\_role\_arn](#input\_iam\_role\_arn) | Existing IAM role ARN for the lambda. Required if `create_iam_role` is set to `false` | `string` | `null` | no |
 | <a name="input_included_accounts"></a> [included\_accounts](#input\_included\_accounts) | List of accounts that be scanned to manual actions. If empty will scan all accounts. | `list(string)` | `[]` | no |
 | <a name="input_included_users"></a> [included\_users](#input\_included\_users) | List of emails that be scanned to manual actions. If empty will scan all emails. | `list(string)` | `[]` | no |
 | <a name="input_lambda_memory_size"></a> [lambda\_memory\_size](#input\_lambda\_memory\_size) | The amount of memory for Lambda to use | `number` | `"128"` | no |
@@ -101,6 +106,8 @@ resource "aws_s3_bucket" "test_bucket" {
 | <a name="input_log_retention_in_days"></a> [log\_retention\_in\_days](#input\_log\_retention\_in\_days) | Number of days to keep CloudWatch logs | `number` | `14` | no |
 | <a name="input_message_format"></a> [message\_format](#input\_message\_format) | Where do you want to send this message? slack or msteams | `string` | `"slack"` | no |
 | <a name="input_naming_prefix"></a> [naming\_prefix](#input\_naming\_prefix) | Resources will be prefixed with this | `string` | `"clickops-notifier"` | no |
+| <a name="input_standalone"></a> [standalone](#input\_standalone) | Deploy ClickOps in a standalone account instead of into an entire AWS Organization. Ideal for teams who want to monitor ClickOps in only their accounts where it is not instrumented at an Organizational level. | `bool` | `false` | no |
+| <a name="input_subcription_filter_distribution"></a> [subcription\_filter\_distribution](#input\_subcription\_filter\_distribution) | The method used to distribute log data to the destination. By default log data is grouped by log stream, but the grouping can be set to random for a more even distribution. This property is only applicable when the destination is an Amazon Kinesis stream. Valid values are "Random" and "ByLogStream". | `string` | `"Random"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to add to resources in addition to the default\_tags for the provider | `map(string)` | `{}` | no |
 | <a name="input_webhook"></a> [webhook](#input\_webhook) | The webhook URL for notifications. https://api.slack.com/messaging/webhooks | `string` | n/a | yes |
 ----
@@ -121,7 +128,7 @@ resource "aws_s3_bucket" "test_bucket" {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.38.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.48.0 |
 ----
 ### Requirements
 
@@ -134,10 +141,13 @@ resource "aws_s3_bucket" "test_bucket" {
 
 | Name | Type |
 |------|------|
+| [aws_cloudwatch_log_subscription_filter.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_subscription_filter) | resource |
 | [aws_s3_bucket_notification.bucket_notification](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_notification) | resource |
 | [aws_sqs_queue.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue) | resource |
 | [aws_sqs_queue_policy.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue_policy) | resource |
 | [aws_ssm_parameter.slack_webhook](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_cloudwatch_log_group.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/cloudwatch_log_group) | data source |
+| [aws_iam_policy_document.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.lambda_permissions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_s3_bucket.cloudtrail_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/s3_bucket) | data source |
 ----

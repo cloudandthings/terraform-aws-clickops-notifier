@@ -41,3 +41,4 @@ sam/packaged.yaml
 sam/.aws-sam/
 
 .venv/
+builds/

@@ -4,6 +4,7 @@ import urllib.request
 import boto3
 import io
 import gzip
+import base64
 import os
 from typing import Tuple
 
@@ -76,7 +77,7 @@ def valid_user(email) -> Tuple[bool, str]:
     return False
 
 
-def handler(event, context) -> None:  # noqa: C901
+def handler_organizational(event, context) -> None:  # noqa: C901
     """
     This functions processes CloudTrail logs from S3, filters events from the AWS
     Console, and publishes to SNS
@@ -121,28 +122,66 @@ def handler(event, context) -> None:  # noqa: C901
                     event_json = json.load(fh)
 
                     for event in event_json['Records']:
-                        cloudtrail_event = CloudTrailEvent(event)
 
-                        is_valid_user, reason = valid_user(cloudtrail_event.user_email)
+                        event_origin = f"{bucket}/{key}"
 
-                        if not is_valid_user:
-                            continue
-
-                        clickops_checker = ClickOpsEventChecker(cloudtrail_event,
-                                                                EXCLUDED_SCOPED_ACTIONS)
-
-                        is_clickops, reason = clickops_checker.is_clickops()
-
-                        if is_clickops:
-                            if not messenger.send(
-                                    cloudtrail_event.user_email,
-                                    event,
-                                    s3_bucket=bucket,
-                                    s3_key=key):
-                                print(f"[ERROR] Message not sent\n\n{json.dumps(record)}")  # noqa: E501
+                        __handle_event(
+                            messenger=messenger,
+                            event=event,
+                            event_origin=event_origin,
+                            standalone=False)
 
             except Exception as e:
                 print(e)
                 raise e
 
     return "Completed"
+
+
+def handler_standalone(event, context) -> None:
+    webhook_url = get_wekbhook()
+
+    messenger = Messenger(
+        format=MESSAGE_FORMAT,
+        webhook=webhook_url)
+
+    # print(json.dumps(event))
+
+    event_decoded_compressed = base64.b64decode(event["awslogs"]["data"])
+    event_uncompressed = gzip.decompress(event_decoded_compressed)
+    event_json = json.loads(event_uncompressed)
+
+    for e in event_json['logEvents']:
+
+        event_origin = f"{event_json['logGroup']}:{event_json['logStream']}\n{event_json['subscriptionFilters']}"  # noqa: E501
+
+        __handle_event(
+            messenger=messenger,
+            event=json.loads(e['message']),
+            event_origin=event_origin,
+            standalone=True)
+
+    # print(json.dumps(event_json))
+    return "Completed"
+
+
+def __handle_event(messenger, event, event_origin: str, standalone: bool) -> None:
+    cloudtrail_event = CloudTrailEvent(event)
+
+    is_valid_user, reason = valid_user(cloudtrail_event.user_email)
+
+    if not is_valid_user:
+        return
+
+    clickops_checker = ClickOpsEventChecker(cloudtrail_event,
+                                            EXCLUDED_SCOPED_ACTIONS)
+
+    is_clickops, reason = clickops_checker.is_clickops()
+
+    if is_clickops:
+        if not messenger.send(
+                cloudtrail_event.user_email,
+                event,
+                event_origin=event_origin,
+                standalone=standalone):
+            print(f"[ERROR] Message not sent\n\n{json.dumps(event)}")  # noqa: E501

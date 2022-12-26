@@ -1,3 +1,73 @@
+data "aws_iam_policy_document" "lambda_permissions" {
+
+  statement {
+    sid = "SSMAccess"
+
+    actions = [
+      "ssm:GetParameter"
+    ]
+
+    resources = [
+      aws_ssm_parameter.slack_webhook.arn
+    ]
+  }
+
+  # Organizational deployment
+
+  dynamic "statement" {
+
+    for_each = !var.standalone ? toset(["organizational_deployment"]) : toset([])
+
+    content {
+      sid = "S3AccessBucket"
+
+      actions = [
+        "s3:ListBucket"
+      ]
+
+      resources = [
+        data.aws_s3_bucket.cloudtrail_bucket[0].arn
+      ]
+    }
+  }
+
+  dynamic "statement" {
+
+    for_each = !var.standalone ? toset(["organizational_deployment"]) : toset([])
+
+    content {
+      sid = "S3AccessBucketObject"
+
+      actions = [
+        "s3:GetObject"
+      ]
+
+      resources = [
+        "${data.aws_s3_bucket.cloudtrail_bucket[0].arn}/*"
+      ]
+    }
+  }
+
+  dynamic "statement" {
+
+    for_each = !var.standalone ? toset(["organizational_deployment"]) : toset([])
+
+    content {
+      sid = "SQSAccess"
+
+      actions = [
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes",
+        "sqs:ReceiveMessage"
+      ]
+
+      resources = [
+        aws_sqs_queue.bucket_notifications[0].arn
+      ]
+    }
+  }
+}
+
 module "clickops_notifier_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "3.2.1"
@@ -5,7 +75,7 @@ module "clickops_notifier_lambda" {
   function_name = var.naming_prefix
   description   = "ClickOps Notifier Lambda"
 
-  handler     = "main.handler"
+  handler     = var.standalone ? "main.handler_standalone" : "main.handler_organizational"
   runtime     = var.lambda_runtime
   publish     = true
   source_path = "${path.module}/lambda/app"
@@ -40,9 +110,17 @@ module "clickops_notifier_lambda" {
     LOG_LEVEL = "INFO"
   }
 
-  event_source_mapping = {
-    sqs = {
-      event_source_arn                   = aws_sqs_queue.bucket_notifications.arn
+  allowed_triggers = var.standalone ? {
+    permission = {
+      statement_id = "AllowExecutionFromCloudWatch"
+      principal    = "logs.amazonaws.com"
+      source_arn   = "${data.aws_cloudwatch_log_group.this[0].arn}:*"
+    }
+  } : {}
+
+  event_source_mapping = var.standalone ? {} : {
+    src = {
+      event_source_arn                   = aws_sqs_queue.bucket_notifications[0].arn
       batch_size                         = var.event_batch_size
       maximum_batching_window_in_seconds = var.event_maximum_batching_window
     }
