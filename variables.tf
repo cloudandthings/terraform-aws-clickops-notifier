@@ -1,7 +1,20 @@
 # Required Variables
+variable "standalone" {
+  type        = bool
+  description = "Deploy ClickOps in a standalone account instead of into an entire AWS Organization. Ideal for teams who want to monitor ClickOps in only their accounts where it is not instrumented at an Organizational level."
+  default     = false
+}
+
+variable "cloudtrail_log_group" {
+  type        = string
+  description = "CloudWatch Log group for CloudTrail events."
+  default     = ""
+}
+
 variable "cloudtrail_bucket_name" {
   type        = string
   description = "Bucket containing the Cloudtrail logs that you want to process. ControlTower bucket name follows this naming convention `aws-controltower-logs-{{account_id}}-{{region}}`"
+  default     = ""
 }
 
 variable "webhook" {
@@ -145,5 +158,19 @@ variable "create_iam_role" {
 variable "iam_role_arn" {
   description = "Existing IAM role ARN for the lambda. Required if `create_iam_role` is set to `false`"
   type        = string
-  default     = ""
+  default     = null
+}
+
+variable "subcription_filter_distribution" {
+  description = "The method used to distribute log data to the destination. By default log data is grouped by log stream, but the grouping can be set to random for a more even distribution. This property is only applicable when the destination is an Amazon Kinesis stream. Valid values are \"Random\" and \"ByLogStream\"."
+  type        = string
+  default     = "Random"
+
+  validation {
+    condition = contains([
+      "Random",
+      "ByLogStream"
+    ], var.subcription_filter_distribution)
+    error_message = "Invalid subcription_filter_distribution provided."
+  }
 }
