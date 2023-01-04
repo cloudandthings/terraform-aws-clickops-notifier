@@ -174,3 +174,9 @@ variable "subcription_filter_distribution" {
     error_message = "Invalid subcription_filter_distribution provided."
   }
 }
+
+variable "clickops_metadata" {
+  description = "Map of additional metadata to pass to clickops lambda"
+  type        = any
+  default     = {}
+}

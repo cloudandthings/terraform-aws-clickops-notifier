@@ -4,6 +4,15 @@ import json
 import pytest
 
 import clickops
+from main import get_account_alias
+
+ADDITIONAL_METADATA = {
+    'accounts': {
+        '123456789012': {
+            'alias': 'test_account'
+        }
+    }
+}
 
 IGNORED_SCOPED_EVENTS_DEFAULT = [
     "cognito-idp.amazonaws.com:InitiateAuth",
@@ -76,3 +85,6 @@ def test_mapping(test, file):
 
     assert test_event['expect']['reason_contains'] in reason
     assert is_clickops == test_event['expect']['is_clickops']
+
+    account_alias = get_account_alias(test_event['event']['recipientAccountId'])
+    assert account_alias == test_event['expect']['account_alias']

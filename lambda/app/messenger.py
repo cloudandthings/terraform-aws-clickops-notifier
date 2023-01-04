@@ -15,8 +15,12 @@ class Messenger:
             raise ValueError("Invalid format, must be ['slack', 'msteams']")
 
     def __send_msteams_message(
-        self, user, event, event_origin: str, standalone: str
+        self, user, event, event_origin: str, standalone: str, account_alias
     ) -> bool:
+        account_section = ""
+        account_section += event['recipientAccountId']
+        if account_alias:
+            account_section += f" ({account_alias})"
 
         payload = {
             "@type": "MessageCard",
@@ -48,8 +52,14 @@ class Messenger:
         return True
 
     def __send_slack_message(
-        self, user, event, event_origin: str, standalone: bool
+        self, user, event, event_origin: str, standalone: bool, account_alias
     ) -> bool:
+        account_section = ""
+        account_section += "*Account Id*\n"
+        account_section += event['recipientAccountId']
+        if account_alias:
+            account_section += f" ({account_alias})"
+
         payload = {
             "blocks": [
                 {
@@ -72,7 +82,7 @@ class Messenger:
                     "fields": [
                         {
                             "type": "mrkdwn",
-                            "text": f"*Account Id*\n{event['recipientAccountId']}",
+                            "text": account_section
                         },
                         {"type": "mrkdwn", "text": f"*Region*\n{event['awsRegion']}"},
                     ],

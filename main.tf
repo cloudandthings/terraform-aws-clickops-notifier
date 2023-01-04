@@ -105,6 +105,8 @@ module "clickops_notifier_lambda" {
 
     EXCLUDED_SCOPED_ACTIONS = jsonencode(local.ignored_scoped_events)
 
+    ADDITIONAL_METADATA = jsonencode(var.clickops_metadata)
+
     MESSAGE_FORMAT = var.message_format
 
     LOG_LEVEL = "INFO"

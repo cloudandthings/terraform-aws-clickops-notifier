@@ -21,6 +21,7 @@ EXCLUDED_USERS = json.loads(os.environ['EXCLUDED_USERS'])
 INCLUDED_USERS = json.loads(os.environ['INCLUDED_USERS'])
 EXCLUDED_SCOPED_ACTIONS = json.loads(os.environ['EXCLUDED_SCOPED_ACTIONS'])
 MESSAGE_FORMAT = os.environ['MESSAGE_FORMAT']
+ADDITIONAL_METADATA = json.loads(os.environ['ADDITIONAL_METADATA'])
 LOG_LEVEL = os.environ['LOG_LEVEL']
 
 WEBHOOK_URL = None
@@ -75,6 +76,13 @@ def valid_user(email) -> Tuple[bool, str]:
 
     print(f'[VU_IMPLICIT_EXCLUDE] {email} not in {json.dumps(INCLUDED_USERS)}')
     return False
+
+
+def get_account_alias(account_id) -> str:
+    if account_id in ADDITIONAL_METADATA["accounts"]:
+        return ADDITIONAL_METADATA["accounts"][account_id].get("alias", "")
+    else:
+        return ""
 
 
 def handler_organizational(event, context) -> None:  # noqa: C901
@@ -183,5 +191,6 @@ def __handle_event(messenger, event, event_origin: str, standalone: bool) -> Non
                 cloudtrail_event.user_email,
                 event,
                 event_origin=event_origin,
+                account_alias=get_account_alias(event['recipientAccountId'])
                 standalone=standalone):
             print(f"[ERROR] Message not sent\n\n{json.dumps(event)}")  # noqa: E501
