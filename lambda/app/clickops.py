@@ -6,31 +6,35 @@ from typing import Tuple, List
 class CloudTrailEvent:
     def __init__(self, event) -> None:
 
-        self.user_agent = event.get('userAgent', 'Unknown User Agent')
-        self.event_name = event['eventName']
-        self.event_source = event['eventSource']
-        self.request_id = event.get('requestID', "NA")
+        self.user_agent = event.get("userAgent", "Unknown User Agent")
+        self.event_name = event["eventName"]
+        self.event_source = event["eventSource"]
+        self.request_id = event.get("requestID", "NA")
         self.read_only = self.__readonly_event(event)
         self.user_email = self.__user_email(event)
         self.console_session = self.__console_session_event(event)
 
     @staticmethod
     def __user_email(event) -> str:
-        if 'userIdentity' in event:
+        if "userIdentity" in event:
             match = re.search(
-                r'[\w.+-]+@[\w-]+\.[\w.-]+',
-                json.dumps(event['userIdentity']))
+                r"[\w.+-]+@[\w-]+\.[\w.-]+", json.dumps(event["userIdentity"])
+            )
             if match is None:
-                return 'Unknown'
+                return "Unknown"
             else:
                 return match.group(0)
         else:
-            return 'Unknown'
+            return "Unknown"
 
     @staticmethod
     def __readonly_event(event) -> bool:
-        if 'readOnly' in event:
-            if event['readOnly'] == 'true' or event['readOnly'] or event['readOnly'] == 1:
+        if "readOnly" in event:
+            if (
+                event["readOnly"] == "true"
+                or event["readOnly"]
+                or event["readOnly"] == 1
+            ):
                 return True
             else:
                 return False
@@ -39,10 +43,12 @@ class CloudTrailEvent:
 
     @staticmethod
     def __console_session_event(event) -> bool:
-        if 'sessionCredentialFromConsole' in event:
-            if event['sessionCredentialFromConsole'] == 'true' or \
-               event['sessionCredentialFromConsole'] or \
-               event['sessionCredentialFromConsole'] == 1:
+        if "sessionCredentialFromConsole" in event:
+            if (
+                event["sessionCredentialFromConsole"] == "true"
+                or event["sessionCredentialFromConsole"]
+                or event["sessionCredentialFromConsole"] == 1
+            ):
                 return True
             else:
                 return False
@@ -51,7 +57,9 @@ class CloudTrailEvent:
 
 
 class ClickOpsEventChecker:
-    def __init__(self, event: CloudTrailEvent, ignored_scoped_events: List[str]) -> None:
+    def __init__(
+        self, event: CloudTrailEvent, ignored_scoped_events: List[str]
+    ) -> None:
 
         self.READONLY_EVENTS_RE = [
             "^Get",
@@ -70,7 +78,7 @@ class ClickOpsEventChecker:
             "listDnssec",
             "Decrypt",
             "REST.GET.OBJECT_LOCK_CONFIGURATION",
-            "ConsoleLogin"
+            "ConsoleLogin",
         }
 
         self.USER_AGENTS_RE = [
@@ -82,11 +90,7 @@ class ClickOpsEventChecker:
             "^aws-internal(.*)AWSLambdaConsole(.*)",
         ]
 
-        self.USER_AGENTS = {
-            "console.amazonaws.com",
-            "Coral/Jakarta",
-            "Coral/Netty4"
-        }
+        self.USER_AGENTS = {"console.amazonaws.com", "Coral/Jakarta", "Coral/Netty4"}
 
         self.event = event
 
@@ -106,7 +110,10 @@ class ClickOpsEventChecker:
         return self.event.event_name in self.IGNORED_EVENTS
 
     def __match_ignored_scoped_events(self) -> bool:
-        return f'{self.event.event_source}:{self.event.event_name}' in self.IGNORED_SCOPED_EVENTS  # noqa: E501
+        return (
+            f"{self.event.event_source}:{self.event.event_name}"
+            in self.IGNORED_SCOPED_EVENTS
+        )  # noqa: E501
 
     def __user_agent_console(self) -> bool:
 

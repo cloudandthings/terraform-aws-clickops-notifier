@@ -97,6 +97,8 @@ module "clickops_notifier_lambda" {
   environment_variables = {
     WEBHOOK_PARAMETER = aws_ssm_parameter.slack_webhook.name
 
+    DELIVERY_STREAM_NAME = var.delivery_stream_name
+
     EXCLUDED_ACCOUNTS = jsonencode(var.excluded_accounts)
     INCLUDED_ACCOUNTS = jsonencode(var.included_accounts)
 

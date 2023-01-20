@@ -10,22 +10,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: 🐍 Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-      - name: 🏗️ Install dependencies 
+      - name: 🏗️ Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install flake8==4.0.1
           pip install pytest==7.0.1
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      
+
       - name: 👩‍🏫 Lint with flake8
         run: |
           flake8 --count --max-complexity=10 --max-line-length=90 --statistics
-      
+
       - name: 🧪 Unit tests
         run: |
           pytest

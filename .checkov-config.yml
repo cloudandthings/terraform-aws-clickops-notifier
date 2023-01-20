@@ -1,0 +1,5 @@
+download-external-modules: true
+quiet: true
+skip-check:
+  # Github: Ensure top-level permissions are not set to write-all
+  # - CKV2_GHA_1

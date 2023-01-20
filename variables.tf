@@ -23,6 +23,12 @@ variable "webhook" {
   sensitive   = true
 }
 
+variable "delivery_stream_name" {
+  description = "TODO"
+  type        = string
+  default     = "TODO"
+}
+
 # Application Related Optional Variables
 
 variable "message_format" {

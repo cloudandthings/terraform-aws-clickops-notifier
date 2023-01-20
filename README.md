@@ -26,62 +26,9 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 
 
 <!-- BEGIN_TF_DOCS -->
-## Module Docs
-### Examples
+----
+## Documentation
 
-```hcl
-terraform {
-  required_version = ">= 0.13.1"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "4.9.0"
-    }
-
-    random = {
-      source  = "hashicorp/random"
-      version = "3.4.3"
-    }
-  }
-}
-
-provider "aws" {
-  region = "eu-west-1"
-}
-
-locals {
-  tags = {
-    uasage = "clickops-testing"
-    run    = random_pet.run_id.id
-  }
-
-  naming_prefix = "clickops-test-basic-${random_pet.run_id.id}"
-}
-
-resource "random_pet" "run_id" {
-  keepers = {
-    # Generate a new pet name each time we switch to a new AMI id
-    run_id = var.run_id
-  }
-}
-
-module "clickops_notifications" {
-  source = "../../"
-
-  naming_prefix          = local.naming_prefix
-  cloudtrail_bucket_name = aws_s3_bucket.test_bucket.id
-  webhook                = "https://fake.com"
-  message_format         = "slack"
-  tags                   = local.tags
-}
-
-
-resource "aws_s3_bucket" "test_bucket" {
-  bucket = local.naming_prefix
-  tags   = local.tags
-}
-```
 ----
 ### Inputs
 
@@ -91,6 +38,7 @@ resource "aws_s3_bucket" "test_bucket" {
 | <a name="input_cloudtrail_bucket_name"></a> [cloudtrail\_bucket\_name](#input\_cloudtrail\_bucket\_name) | Bucket containing the Cloudtrail logs that you want to process. ControlTower bucket name follows this naming convention `aws-controltower-logs-{{account_id}}-{{region}}` | `string` | `""` | no |
 | <a name="input_cloudtrail_log_group"></a> [cloudtrail\_log\_group](#input\_cloudtrail\_log\_group) | CloudWatch Log group for CloudTrail events. | `string` | `""` | no |
 | <a name="input_create_iam_role"></a> [create\_iam\_role](#input\_create\_iam\_role) | Determines whether a an IAM role is created or to use an existing IAM role | `bool` | `true` | no |
+| <a name="input_delivery_stream_name"></a> [delivery\_stream\_name](#input\_delivery\_stream\_name) | TODO | `string` | `"TODO"` | no |
 | <a name="input_event_batch_size"></a> [event\_batch\_size](#input\_event\_batch\_size) | Batch events into chunks of `event_batch_size` | `number` | `10` | no |
 | <a name="input_event_maximum_batching_window"></a> [event\_maximum\_batching\_window](#input\_event\_maximum\_batching\_window) | Maximum batching window in seconds. | `number` | `300` | no |
 | <a name="input_event_processing_timeout"></a> [event\_processing\_timeout](#input\_event\_processing\_timeout) | Maximum number of seconds the lambda is allowed to run and number of seconds events should be hidden in SQS after being picked up my Lambda. | `number` | `60` | no |
@@ -110,12 +58,14 @@ resource "aws_s3_bucket" "test_bucket" {
 | <a name="input_subcription_filter_distribution"></a> [subcription\_filter\_distribution](#input\_subcription\_filter\_distribution) | The method used to distribute log data to the destination. By default log data is grouped by log stream, but the grouping can be set to random for a more even distribution. This property is only applicable when the destination is an Amazon Kinesis stream. Valid values are "Random" and "ByLogStream". | `string` | `"Random"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to add to resources in addition to the default\_tags for the provider | `map(string)` | `{}` | no |
 | <a name="input_webhook"></a> [webhook](#input\_webhook) | The webhook URL for notifications. https://api.slack.com/messaging/webhooks | `string` | n/a | yes |
+
 ----
 ### Modules
 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_clickops_notifier_lambda"></a> [clickops\_notifier\_lambda](#module\_clickops\_notifier\_lambda) | terraform-aws-modules/lambda/aws | 3.2.1 |
+
 ----
 ### Outputs
 
@@ -123,12 +73,14 @@ resource "aws_s3_bucket" "test_bucket" {
 |------|-------------|
 | <a name="output_clickops_notifier_lambda"></a> [clickops\_notifier\_lambda](#output\_clickops\_notifier\_lambda) | Expose all the outputs from the lambda module |
 | <a name="output_sqs_queue"></a> [sqs\_queue](#output\_sqs\_queue) | Expose the bucket notification SQS details |
+
 ----
 ### Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.48.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.9 |
+
 ----
 ### Requirements
 
@@ -136,6 +88,7 @@ resource "aws_s3_bucket" "test_bucket" {
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.1 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.9 |
+
 ----
 ### Resources
 
@@ -150,59 +103,8 @@ resource "aws_s3_bucket" "test_bucket" {
 | [aws_iam_policy_document.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.lambda_permissions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_s3_bucket.cloudtrail_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/s3_bucket) | data source |
+
 ----
-### Default excluded scoped actions
-```hcl
-locals {
-  ignored_scoped_events_built_in = [
-    "cognito-idp.amazonaws.com:InitiateAuth",
-    "cognito-idp.amazonaws.com:RespondToAuthChallenge",
-
-    "sso.amazonaws.com:Federate",
-    "sso.amazonaws.com:Authenticate",
-    "sso.amazonaws.com:Logout",
-    "sso.amazonaws.com:SearchUsers",
-    "sso.amazonaws.com:SearchGroups",
-    "sso.amazonaws.com:CreateToken",
-
-    "signin.amazonaws.com:UserAuthentication",
-    "signin.amazonaws.com:SwitchRole",
-    "signin.amazonaws.com:RenewRole",
-    "signin.amazonaws.com:ExternalIdPDirectoryLogin",
-    "signin.amazonaws.com:CredentialVerification",
-    "signin.amazonaws.com:CredentialChallenge",
-    "signin.amazonaws.com:CheckMfa",
-
-    "logs.amazonaws.com:StartQuery",
-    "cloudtrail.amazonaws.com:StartQuery",
-
-    "iam.amazonaws.com:SimulatePrincipalPolicy",
-    "iam.amazonaws.com:GenerateServiceLastAccessedDetails",
-
-    "glue.amazonaws.com:BatchGetJobs",
-    "glue.amazonaws.com:BatchGetCrawlers",
-    "glue.amazonaws.com:StartJobRun",
-    "glue.amazonaws.com:StartCrawler",
-
-    "athena.amazonaws.com:StartQueryExecution",
-
-    "servicecatalog.amazonaws.com:SearchProductsAsAdmin",
-    "servicecatalog.amazonaws.com:SearchProducts",
-    "servicecatalog.amazonaws.com:SearchProvisionedProducts",
-    "servicecatalog.amazonaws.com:TerminateProvisionedProduct",
-
-    "cloudshell.amazonaws.com:CreateSession",
-    "cloudshell.amazonaws.com:PutCredentials",
-    "cloudshell.amazonaws.com:SendHeartBeat",
-    "cloudshell.amazonaws.com:CreateEnvironment",
-
-    "kms.amazonaws.com:Decrypt",
-    "kms.amazonaws.com:RetireGrant",
-
-    "trustedadvisor.amazonaws.com:RefreshCheck",
-  ]
-}
-```
-<!-- END_TF_DOCS -->    
+<!-- END_TF_DOCS -->
 
 ----
