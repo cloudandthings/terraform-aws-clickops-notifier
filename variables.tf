@@ -8,7 +8,7 @@ variable "standalone" {
 variable "cloudtrail_log_group" {
   type        = string
   description = "CloudWatch Log group for CloudTrail events."
-  default     = ""
+  default     = null
 }
 
 variable "cloudtrail_bucket_name" {
@@ -21,6 +21,12 @@ variable "webhook" {
   type        = string
   description = "The webhook URL for notifications. https://api.slack.com/messaging/webhooks"
   sensitive   = true
+}
+
+variable "delivery_stream_name" {
+  description = "TODO"
+  type        = string
+  default     = "TODO"
 }
 
 # Application Related Optional Variables
