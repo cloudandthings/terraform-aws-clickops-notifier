@@ -34,19 +34,55 @@ resource "random_pet" "run_id" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "this" {
-  name              = local.naming_prefix
-  retention_in_days = 1
+locals {
+  naming_prefix            = "clickops-test-stand-${random_pet.run_id.id}"
+  naming_prefix_cloudtrail = "${local.naming_prefix}-cloudtrail"
 }
 
+#---------------------------------------
+# Supporting infrastructure
+#---------------------------------------
+# S3 bucket
+module "logs_bucket" {
+  source  = "trussworks/logs/aws"
+  version = "~> 14"
+
+  s3_bucket_name = local.naming_prefix
+
+  allow_cloudtrail = true
+  force_destroy    = true
+}
+
+# Cloudtrail with S3 and cloudwatch logs
+module "aws_cloudtrail" {
+  source  = "trussworks/cloudtrail/aws"
+  version = "~> 4"
+
+  s3_bucket_name = module.logs_bucket.aws_logs_bucket
+
+  trail_name      = local.naming_prefix_cloudtrail
+  iam_policy_name = local.naming_prefix_cloudtrail
+  iam_role_name   = local.naming_prefix_cloudtrail
+
+  cloudwatch_log_group_name = local.naming_prefix_cloudtrail
+  log_retention_days        = 30
+}
+
+#---------------------------------------
+# Setup module
+#---------------------------------------
 module "clickops_notifications" {
   source = "../../"
 
-  standalone           = true
-  naming_prefix        = local.naming_prefix
-  cloudtrail_log_group = aws_cloudwatch_log_group.this.name
-  webhook              = "https://fake.com"
-  message_format       = "slack"
-  tags                 = local.tags
-  lambda_runtime       = "python3.8"
+  naming_prefix = local.naming_prefix
+  standalone    = true
+
+  cloudtrail_log_group = local.naming_prefix_cloudtrail
+
+  webhook        = "https://fake.com"
+  message_format = "slack"
+
+  tags = {}
+
+  depends_on = [module.aws_cloudtrail]
 }

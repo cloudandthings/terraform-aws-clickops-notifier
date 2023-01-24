@@ -38,21 +38,57 @@ resource "random_pet" "run_id" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "this" {
-  name              = local.naming_prefix
-  retention_in_days = 1
+locals {
+  naming_prefix            = "clickops-test-stand-${random_pet.run_id.id}"
+  naming_prefix_cloudtrail = "${local.naming_prefix}-cloudtrail"
 }
 
+#---------------------------------------
+# Supporting infrastructure
+#---------------------------------------
+# S3 bucket
+module "logs_bucket" {
+  source  = "trussworks/logs/aws"
+  version = "~> 14"
+
+  s3_bucket_name = local.naming_prefix
+
+  allow_cloudtrail = true
+  force_destroy    = true
+}
+
+# Cloudtrail with S3 and cloudwatch logs
+module "aws_cloudtrail" {
+  source  = "trussworks/cloudtrail/aws"
+  version = "~> 4"
+
+  s3_bucket_name = module.logs_bucket.aws_logs_bucket
+
+  trail_name      = local.naming_prefix_cloudtrail
+  iam_policy_name = local.naming_prefix_cloudtrail
+  iam_role_name   = local.naming_prefix_cloudtrail
+
+  cloudwatch_log_group_name = local.naming_prefix_cloudtrail
+  log_retention_days        = 30
+}
+
+#---------------------------------------
+# Setup module
+#---------------------------------------
 module "clickops_notifications" {
   source = "../../"
 
-  standalone           = true
-  naming_prefix        = local.naming_prefix
-  cloudtrail_log_group = aws_cloudwatch_log_group.this.name
-  webhook              = "https://fake.com"
-  message_format       = "slack"
-  tags                 = local.tags
-  lambda_runtime       = "python3.8"
+  naming_prefix = local.naming_prefix
+  standalone    = true
+
+  cloudtrail_log_group = local.naming_prefix_cloudtrail
+
+  webhook        = "https://fake.com"
+  message_format = "slack"
+
+  tags = {}
+
+  depends_on = [module.aws_cloudtrail]
 }
 ```
 ----
@@ -71,7 +107,9 @@ module "clickops_notifications" {
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_aws_cloudtrail"></a> [aws\_cloudtrail](#module\_aws\_cloudtrail) | trussworks/cloudtrail/aws | ~> 4 |
 | <a name="module_clickops_notifications"></a> [clickops\_notifications](#module\_clickops\_notifications) | ../../ | n/a |
+| <a name="module_logs_bucket"></a> [logs\_bucket](#module\_logs\_bucket) | trussworks/logs/aws | ~> 14 |
 
 ----
 ### Outputs
@@ -83,7 +121,6 @@ No outputs.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.9.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.4.3 |
 
 ----
@@ -100,7 +137,6 @@ No outputs.
 
 | Name | Type |
 |------|------|
-| [aws_cloudwatch_log_group.this](https://registry.terraform.io/providers/hashicorp/aws/4.9.0/docs/resources/cloudwatch_log_group) | resource |
 | [random_pet.run_id](https://registry.terraform.io/providers/hashicorp/random/3.4.3/docs/resources/pet) | resource |
 
 ----

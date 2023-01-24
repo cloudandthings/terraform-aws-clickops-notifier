@@ -48,4 +48,6 @@ test.auto.tfvars*
 *.code-workspace
 
 # Apple
+.venv/
+builds/
 .DS_Store
