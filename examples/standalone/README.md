@@ -28,7 +28,8 @@ locals {
     run   = random_pet.run_id.id
   }
 
-  naming_prefix = "clickops-test-basic-${random_pet.run_id.id}"
+  naming_prefix            = "clickops-test-basic-${random_pet.run_id.id}"
+  naming_prefix_cloudtrail = "${local.naming_prefix}-cloudtrail"
 }
 
 resource "random_pet" "run_id" {
@@ -36,11 +37,6 @@ resource "random_pet" "run_id" {
     # Generate a new pet name
     run_id = var.run_id
   }
-}
-
-locals {
-  naming_prefix            = "clickops-test-stand-${random_pet.run_id.id}"
-  naming_prefix_cloudtrail = "${local.naming_prefix}-cloudtrail"
 }
 
 #---------------------------------------
@@ -55,6 +51,8 @@ module "logs_bucket" {
 
   allow_cloudtrail = true
   force_destroy    = true
+
+  tags = local.tags
 }
 
 # Cloudtrail with S3 and cloudwatch logs
@@ -70,6 +68,8 @@ module "aws_cloudtrail" {
 
   cloudwatch_log_group_name = local.naming_prefix_cloudtrail
   log_retention_days        = 30
+
+  tags = local.tags
 }
 
 #---------------------------------------
@@ -86,7 +86,7 @@ module "clickops_notifications" {
   webhook        = "https://fake.com"
   message_format = "slack"
 
-  tags = {}
+  tags = local.tags
 
   depends_on = [module.aws_cloudtrail]
 }
