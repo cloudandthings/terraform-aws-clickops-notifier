@@ -1,0 +1,59 @@
+name: Terraform min-max
+
+on:
+  pull_request:
+
+jobs:
+  collectDirectories:
+    name: 🍱 collect directories
+    # Outputs a list of all unique directories
+    # that contain *.tf files and do not start with .
+    runs-on: ubuntu-latest
+    outputs:
+      directories: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: set-matrix
+        run: |
+          DIRS=$(find . -type f -name '*.tf' -not -path '**/.*' | sed -r 's|/[^/]+$||' | sort | uniq)
+          DIRS_JSON=$(jq -ncR '[inputs]' <<< "$DIRS")
+          cat <<< matrix=$DIRS_JSON >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+  validateTerraformMinMaxVersions:
+    name: 🏗️ Validate Terraform min/max versions
+    needs: collectDirectories
+    # For public repos use runs-on: ubuntu-latest
+    # For private repos use runs-on: self-hosted
+    runs-on: ubuntu-latest
+    container: bjorncloudandthings/terraform-aws-github:latest
+    strategy:
+      matrix:
+        directory: ${{ fromJson(needs.collectDirectories.outputs.directories) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get Terraform min/max versions
+        id: minMax
+        uses: clowdhaus/terraform-min-max@v1.2.4
+        with:
+          directory: ${{ matrix.directory }}
+
+      - name: Validate min Terraform version (${{ steps.minMax.outputs.minVersion }})
+        run: |
+          ls -la ~
+          tfenv install ${{ steps.minMax.outputs.minVersion }}
+          tfenv use ${{ steps.minMax.outputs.minVersion }}
+          terraform --version
+          terraform init -backend=false
+          terraform validate
+
+      - name: Validate max Terraform version (${{ steps.minMax.outputs.maxVersion }})
+        run: |
+          ls -la ~
+          tfenv install ${{ steps.minMax.outputs.maxVersion }}
+          tfenv use ${{ steps.minMax.outputs.maxVersion }}
+          terraform --version
+          terraform init -backend=false
+          terraform validate

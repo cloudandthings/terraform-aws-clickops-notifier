@@ -1,0 +1,92 @@
+name: pre-commit & tests
+
+env:
+  AWS_REGION: af-south-1
+  AWS_ROLE_ARN: arn:aws:iam::353444730604:role/cat-genrl-prd-infra-github-workflows
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+
+permissions:
+  id-token: write
+  contents: read
+
+defaults:
+  # Set shell for steps inside containers (default=sh)
+  run:
+    shell: bash
+
+jobs:
+  #--------------------------------------------------------------
+  # PRE-COMMIT
+  #--------------------------------------------------------------
+  pre_commit:
+    name: 💍 pre-commit
+    # For public repos use runs-on: ubuntu-latest
+    # For private repos use runs-on: self-hosted
+    runs-on: ubuntu-latest
+    container: bjorncloudandthings/terraform-aws-github:latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v2
+      - uses: hashicorp/setup-terraform@v2
+      - name: Install requirements
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install pre-commit
+          fi
+      - name: Run
+        run: |
+          source .venv/bin/activate
+          pre-commit install
+          if [[ "${{ env.GITHUB_REPOSITORY}}" == "cloudandthings/terraform-aws-template" ]]; then
+            export SKIP=no-vanilla-readme
+          fi
+          pre-commit run --all-files --show-diff-on-failure
+      - name: cat pre-commit log
+        if: failure()
+        run: cat ~/.cache/pre-commit/pre-commit.log
+
+  #--------------------------------------------------------------
+  # TESTS
+  #--------------------------------------------------------------
+  tests:
+    needs: [pre_commit]
+    name: ✅ tests
+    # For public repos use runs-on: ubuntu-latest
+    # For private repos use runs-on: self-hosted
+    runs-on: ubuntu-latest
+    container: bjorncloudandthings/terraform-aws-github:latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v2
+      - uses: hashicorp/setup-terraform@v2
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-duration-seconds: 3600
+      - name: Install requirements
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
+      - name: Run
+        run: |
+          source .venv/bin/activate
+          echo "::echo::off"
+          pytest
+        env:
+          PYTEST_ADDOPTS: "--color=yes"
+        timeout-minutes: 10
