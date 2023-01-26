@@ -10,6 +10,7 @@ from typing import Tuple
 
 from clickops import ClickOpsEventChecker, CloudTrailEvent
 from messenger import Messenger
+from delivery_stream import DeliveryStream
 
 s3 = boto3.client("s3")
 ssm = boto3.client("ssm")
@@ -23,10 +24,14 @@ EXCLUDED_SCOPED_ACTIONS = json.loads(os.environ["EXCLUDED_SCOPED_ACTIONS"])
 MESSAGE_FORMAT = os.environ["MESSAGE_FORMAT"]
 LOG_LEVEL = os.environ["LOG_LEVEL"]
 
+FIREHOSE_DELIVERY_STREAM_NAME = os.environ.get("FIREHOSE_DELIVERY_STREAM_NAME")
+if FIREHOSE_DELIVERY_STREAM_NAME == "__NONE__":
+    FIREHOSE_DELIVERY_STREAM_NAME = None
+
 WEBHOOK_URL = None
 
 
-def get_wekbhook() -> str:
+def get_webhook() -> str:
     global WEBHOOK_URL
     if WEBHOOK_URL is None:
         response = ssm.get_parameter(Name=WEBHOOK_PARAMETER, WithDecryption=True)
@@ -86,10 +91,13 @@ def handler_organizational(event, context) -> None:  # noqa: C901
     :return: None
     """
 
-    webhook_url = get_wekbhook()
+    webhook_url = get_webhook()
 
     messenger = Messenger(format=MESSAGE_FORMAT, webhook=webhook_url)
 
+    delivery_stream = DeliveryStream(delivery_stream_name=FIREHOSE_DELIVERY_STREAM_NAME)
+
+    success = True
     for sqs_record in event["Records"]:
         s3_events = json.loads(sqs_record["body"])
 
@@ -112,58 +120,74 @@ def handler_organizational(event, context) -> None:  # noqa: C901
             if not is_valid_account:
                 continue
 
-            try:
-                response = s3.get_object(Bucket=bucket, Key=key)
-                content = response["Body"].read()
+            response = s3.get_object(Bucket=bucket, Key=key)
+            content = response["Body"].read()
 
-                with gzip.GzipFile(fileobj=io.BytesIO(content), mode="rb") as fh:
-                    event_json = json.load(fh)
+            with gzip.GzipFile(fileobj=io.BytesIO(content), mode="rb") as fh:
+                event_json = json.load(fh)
 
-                    for event in event_json["Records"]:
+                for event in event_json["Records"]:
 
-                        event_origin = f"{bucket}/{key}"
+                    event_origin = f"{bucket}/{key}"
 
-                        __handle_event(
-                            messenger=messenger,
-                            event=event,
-                            event_origin=event_origin,
-                            standalone=False,
-                        )
+                    success = success and __handle_event(
+                        messenger=messenger,
+                        delivery_stream=delivery_stream,
+                        event=event,
+                        event_origin=event_origin,
+                        standalone=False,
+                    )
 
-            except Exception as e:
-                print(e)
-                raise e
+    if not success:
+        print("records:\n\n" f"{json.dumps(records)}")
+        raise Exception("A problem occurred, please review error logs.")
 
     return "Completed"
 
 
 def handler_standalone(event, context) -> None:
-    webhook_url = get_wekbhook()
+
+    webhook_url = get_webhook()
 
     messenger = Messenger(format=MESSAGE_FORMAT, webhook=webhook_url)
 
-    # print(json.dumps(event))
+    delivery_stream = DeliveryStream(delivery_stream_name=FIREHOSE_DELIVERY_STREAM_NAME)
 
     event_decoded_compressed = base64.b64decode(event["awslogs"]["data"])
     event_uncompressed = gzip.decompress(event_decoded_compressed)
     event_json = json.loads(event_uncompressed)
 
+    # print(event_uncompressed)
+
+    success = True
     for e in event_json["logEvents"]:
 
-        event_origin = f"{event_json['logGroup']}:{event_json['logStream']}\n{event_json['subscriptionFilters']}"  # noqa: E501
+        event_origin = (
+            event_json["logGroup"]
+            + ":"
+            + {event_json["logStream"]}
+            + "\n"
+            + {event_json["subscriptionFilters"]}
+        )
 
-        __handle_event(
+        success = success and __handle_event(
             messenger=messenger,
+            delivery_stream=delivery_stream,
             event=json.loads(e["message"]),
             event_origin=event_origin,
             standalone=True,
         )
 
-    # print(json.dumps(event_json))
+    if not success:
+        print("event_uncompressed:\n\n" + event_uncompressed)
+        raise Exception("A problem occurred, please review error logs.")
+
     return "Completed"
 
 
-def __handle_event(messenger, event, event_origin: str, standalone: bool) -> None:
+def __handle_event(
+    messenger, delivery_stream, event, event_origin: str, standalone: bool
+) -> bool:
     cloudtrail_event = CloudTrailEvent(event)
 
     is_valid_user, reason = valid_user(cloudtrail_event.user_email)
@@ -176,10 +200,20 @@ def __handle_event(messenger, event, event_origin: str, standalone: bool) -> Non
     is_clickops, reason = clickops_checker.is_clickops()
 
     if is_clickops:
-        if not messenger.send(
+        result1 = messenger.send(
             cloudtrail_event.user_email,
             event,
             event_origin=event_origin,
             standalone=standalone,
-        ):
-            print(f"[ERROR] Message not sent\n\n{json.dumps(event)}")  # noqa: E501
+        )
+        if not result1:
+            print("[ERROR] Message not sent to webhook.\n\n" f"{json.dumps(event)}")
+        result2 = delivery_stream.send(event)
+        if not result2:
+            print(
+                "[ERROR] Message not delivered to delivery stream.\n\n"
+                f"{json.dumps(event)}"
+            )
+        return result1 and result2
+
+    return True
