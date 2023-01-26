@@ -37,6 +37,10 @@ content: |-
   {{ .Resources }}
 
   ----
+  ### Default excluded scoped actions
+  ```hcl
+  {{ include "/excluded_scoped_actions.tf" }}
+  ```
 
 
 output:
