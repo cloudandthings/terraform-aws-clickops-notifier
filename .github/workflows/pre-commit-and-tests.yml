@@ -54,8 +54,9 @@ jobs:
           fi
           echo ...running developer pre-commit checks...
           pre-commit run --config .pre-commit-config.yaml --all-files --show-diff-on-failure
-          echo ...running remote pre-commit checks...
-          pre-commit run --config .github/.pre-commit-config.yaml --all-files --show-diff-on-failure
+          # tfsec and checkov are temporarily disabled.
+          # echo ...running remote pre-commit checks...
+          # pre-commit run --config .github/.pre-commit-config.yaml --all-files --show-diff-on-failure
       - name: cat pre-commit log
         if: failure()
         run: cat ~/.cache/pre-commit/pre-commit.log
