@@ -5,6 +5,9 @@
 *.tfstate
 *.tfstate.*
 
+# TF cache
+.tfcache
+
 # Crash log files
 crash.log
 
@@ -12,7 +15,7 @@ crash.log
 # .tfvars files are managed as part of configuration and so should be included in
 # version control.
 #
-terraform.tfvars
+# example.tfvars
 
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in
@@ -27,18 +30,22 @@ override.tf.json
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
-
 .terraform.lock.hcl
 lambda.zip
 terraform.tfvars
 .env
 .idea
 __pycache__
-tmp
-sample/plan
 
-sam/packaged.yaml
-sam/.aws-sam/
+# Testing artefacts
+tf_resources.json
+test-rsa.*
+.out
+*.tar.gz
+test.auto.tfvars*
 
-.venv/
-builds/
+# VSCode
+*.code-workspace
+
+# Apple
+.DS_Store

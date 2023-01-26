@@ -26,62 +26,9 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 
 
 <!-- BEGIN_TF_DOCS -->
-## Module Docs
-### Examples
+----
+## Documentation
 
-```hcl
-terraform {
-  required_version = ">= 0.13.1"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "4.9.0"
-    }
-
-    random = {
-      source  = "hashicorp/random"
-      version = "3.4.3"
-    }
-  }
-}
-
-provider "aws" {
-  region = "eu-west-1"
-}
-
-locals {
-  tags = {
-    uasage = "clickops-testing"
-    run    = random_pet.run_id.id
-  }
-
-  naming_prefix = "clickops-test-basic-${random_pet.run_id.id}"
-}
-
-resource "random_pet" "run_id" {
-  keepers = {
-    # Generate a new pet name each time we switch to a new AMI id
-    run_id = var.run_id
-  }
-}
-
-module "clickops_notifications" {
-  source = "../../"
-
-  naming_prefix          = local.naming_prefix
-  cloudtrail_bucket_name = aws_s3_bucket.test_bucket.id
-  webhook                = "https://fake.com"
-  message_format         = "slack"
-  tags                   = local.tags
-}
-
-
-resource "aws_s3_bucket" "test_bucket" {
-  bucket = local.naming_prefix
-  tags   = local.tags
-}
-```
 ----
 ### Inputs
 
@@ -110,12 +57,14 @@ resource "aws_s3_bucket" "test_bucket" {
 | <a name="input_subcription_filter_distribution"></a> [subcription\_filter\_distribution](#input\_subcription\_filter\_distribution) | The method used to distribute log data to the destination. By default log data is grouped by log stream, but the grouping can be set to random for a more even distribution. This property is only applicable when the destination is an Amazon Kinesis stream. Valid values are "Random" and "ByLogStream". | `string` | `"Random"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to add to resources in addition to the default\_tags for the provider | `map(string)` | `{}` | no |
 | <a name="input_webhook"></a> [webhook](#input\_webhook) | The webhook URL for notifications. https://api.slack.com/messaging/webhooks | `string` | n/a | yes |
+
 ----
 ### Modules
 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_clickops_notifier_lambda"></a> [clickops\_notifier\_lambda](#module\_clickops\_notifier\_lambda) | terraform-aws-modules/lambda/aws | 3.2.1 |
+
 ----
 ### Outputs
 
@@ -123,19 +72,22 @@ resource "aws_s3_bucket" "test_bucket" {
 |------|-------------|
 | <a name="output_clickops_notifier_lambda"></a> [clickops\_notifier\_lambda](#output\_clickops\_notifier\_lambda) | Expose all the outputs from the lambda module |
 | <a name="output_sqs_queue"></a> [sqs\_queue](#output\_sqs\_queue) | Expose the bucket notification SQS details |
+
 ----
 ### Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.48.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.9 |
+
 ----
 ### Requirements
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.1 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.9 |
+
 ----
 ### Resources
 
@@ -150,6 +102,7 @@ resource "aws_s3_bucket" "test_bucket" {
 | [aws_iam_policy_document.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.lambda_permissions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_s3_bucket.cloudtrail_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/s3_bucket) | data source |
+
 ----
 ### Default excluded scoped actions
 ```hcl
@@ -203,6 +156,6 @@ locals {
   ]
 }
 ```
-<!-- END_TF_DOCS -->    
+<!-- END_TF_DOCS -->
 
 ----

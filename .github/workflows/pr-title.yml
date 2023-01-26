@@ -1,4 +1,4 @@
-name: 'Validate PR title'
+name: Validate PR title
 
 on:
   pull_request_target:
@@ -9,12 +9,12 @@ on:
 
 jobs:
   main:
-    name: Validate PR title
+    name: 👀 Validate PR title
     runs-on: ubuntu-latest
     steps:
       # Please look up the latest version from
       # https://github.com/amannn/action-semantic-pull-request/releases
-      - uses: amannn/action-semantic-pull-request@v3.4.6
+      - uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -45,8 +45,10 @@ jobs:
           # validation of the PR title and the pull request checks remain pending.
           # Note that a second check will be reported if this is enabled.
           wip: true
-          # When using "Squash and merge" on a PR with only one commit, GitHub
-          # will suggest using that commit message instead of the PR title for the
-          # merge commit, and it's easy to commit this by mistake. Enable this option
-          # to also validate the commit message for one commit PRs.
+          # See: https://github.com/amannn/action-semantic-pull-request#legacy-configuration
+          # If the PR only contains a single commit, the action will validate that
+          # it matches the configured pattern.
           validateSingleCommit: true
+          # Related to `validateSingleCommit` you can opt-in to validate that the PR
+          # title matches a single commit to avoid confusion.
+          validateSingleCommitMatchesPrTitle: true

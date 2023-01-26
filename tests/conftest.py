@@ -36,13 +36,11 @@ def terraform_examples():
 
 
 @pytest.fixture(scope="session")
-def terraform_config(
-    terraform_binary, terraform_examples
-):
+def terraform_config(terraform_binary, terraform_examples):
     """Convenience fixture for passing around config."""
     config = {
         "terraform_binary": terraform_binary,
-        "terraform_examples": terraform_examples
+        "terraform_examples": terraform_examples,
     }
     logging.info(config)
     return config
@@ -54,10 +52,10 @@ def get_tf(test_name, terraform_config, variables=None):
     if "." in test_name:  # Called with __name__, eg tests.test_examples_basic
         test_name = test_name.split(".")[-1]
         if test_name.startswith("test_"):
-            test_name = test_name[len("test_"):]
+            test_name = test_name[len("test_") :]
     if test_name.startswith("examples_"):
         basedir = terraform_examples_dir()
-        test_name = test_name[len("examples_"):].replace("_", "-")
+        test_name = test_name[len("examples_") :].replace("_", "-")
     logging.info(f"{basedir=} {test_name=}")
 
     tf = tftest.TerraformTest(

@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 0.13.1"
+  required_version = ">= 0.14.0"
 
   required_providers {
     aws = {
@@ -20,8 +20,8 @@ provider "aws" {
 
 locals {
   tags = {
-    uasage = "clickops-testing"
-    run    = random_pet.run_id.id
+    usage = "clickops-testing"
+    run   = random_pet.run_id.id
   }
 
   naming_prefix = "clickops-test-basic-${random_pet.run_id.id}"
@@ -29,7 +29,7 @@ locals {
 
 resource "random_pet" "run_id" {
   keepers = {
-    # Generate a new pet name each time we switch to a new AMI id
+    # Generate a new pet name
     run_id = var.run_id
   }
 }

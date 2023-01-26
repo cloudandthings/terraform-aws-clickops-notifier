@@ -1,0 +1,17 @@
+# Additional "pre-commit" checks that run remotely.
+# To clarify, these are run "post commit" using the
+# pre-commit framework for execution.
+
+exclude: '^modules/external/.*$'
+
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.74.1
+    hooks:
+      - id: terraform_tfsec
+        files: ^.*.tf$
+        # Configure tfsec by creating and updating the config file below.
+        args: ['--args=--config-file=__GIT_WORKING_DIR__/.tfsec-config.yml']
+      - id: terraform_checkov
+        # Configure checkov by creating and updating the config file below.
+        args: ['--args=--config-file __GIT_WORKING_DIR__/.checkov-config.yml']
