@@ -33,7 +33,9 @@ jobs:
     container: bjorncloudandthings/terraform-aws-github:latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
       - uses: hashicorp/setup-terraform@v2
       - name: Install requirements
         run: |
@@ -44,14 +46,16 @@ jobs:
           else
             pip install pre-commit
           fi
-      - name: Run
+      - name: pre-commit run
         run: |
           source .venv/bin/activate
-          pre-commit install
           if [[ "${{ env.GITHUB_REPOSITORY}}" == "cloudandthings/terraform-aws-template" ]]; then
             export SKIP=no-vanilla-readme
           fi
-          pre-commit run --all-files --show-diff-on-failure
+          echo ...running developer pre-commit checks...
+          pre-commit run --config .pre-commit-config.yaml --all-files --show-diff-on-failure
+          echo ...running remote pre-commit checks...
+          pre-commit run --config .github/.pre-commit-config.yaml --all-files --show-diff-on-failure
       - name: cat pre-commit log
         if: failure()
         run: cat ~/.cache/pre-commit/pre-commit.log
@@ -68,7 +72,9 @@ jobs:
     container: bjorncloudandthings/terraform-aws-github:latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
       - uses: hashicorp/setup-terraform@v2
       - uses: aws-actions/configure-aws-credentials@v1
         with:

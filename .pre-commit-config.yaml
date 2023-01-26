@@ -47,6 +47,9 @@ repos:
       - id: terraform_tflint
         # Configure tflint by creating and updating the config file below.
         args: ['--args=--config=__GIT_WORKING_DIR__/.tflint.hcl']
+      #-----------------------------------------
+      # Moved to .github/.pre-commit-config.yaml
+      #-----------------------------------------
       # - id: terraform_tfsec
       #   files: ^.*.tf$
       #   # Configure tfsec by creating and updating the config file below.
