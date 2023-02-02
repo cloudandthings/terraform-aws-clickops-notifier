@@ -23,6 +23,12 @@ variable "webhook" {
   sensitive   = true
 }
 
+variable "firehose_delivery_stream_name" {
+  description = "Kinesis Firehose delivery stream name to output ClickOps events to."
+  type        = string
+  default     = null
+}
+
 # Application Related Optional Variables
 
 variable "message_format" {

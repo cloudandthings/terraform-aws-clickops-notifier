@@ -108,6 +108,8 @@ module "clickops_notifier_lambda" {
     MESSAGE_FORMAT = var.message_format
 
     LOG_LEVEL = "INFO"
+
+    FIREHOSE_DELIVERY_STREAM_NAME = coalesce(var.firehose_delivery_stream_name, "__NONE__")
   }
 
   allowed_triggers = var.standalone ? {
