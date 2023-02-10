@@ -1,0 +1,21 @@
+######################################
+### NORMALIZATION (convert crlf => lf)
+# https://adaptivepatchwork.com/2012/03/01/mind-the-end-of-your-line/
+######################################
+#
+# NB: WINDOWS USERS, please set:
+# git config --global core.autocrlf input
+#
+# Default is to normalize all text files
+*           text=auto
+
+# These files are explicitly text files and should be normalized
+*.tf        text=auto
+*.tfvars    text=auto
+*.yml       text=auto
+
+# These files are explicitly text files and should not be modified
+
+# These files are explicitly binary
+
+######################################

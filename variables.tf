@@ -180,3 +180,21 @@ variable "subcription_filter_distribution" {
     error_message = "Invalid subcription_filter_distribution provided."
   }
 }
+
+variable "s3_bucket" {
+  description = "S3 bucket for deployment package."
+  type        = string
+  default     = null
+}
+
+variable "s3_key" {
+  description = "S3 object key for deployment package. Otherwise, defaults to `var.naming_prefix/local.deployment_filename`."
+  type        = string
+  default     = null
+}
+
+variable "upload_deployment_to_s3" {
+  description = "If `true`, the deployment package within this module repo will be copied to S3. If `false` then the S3 object must be uploaded separately. Ignored if `s3_bucket` is null."
+  type        = bool
+  default     = true
+}

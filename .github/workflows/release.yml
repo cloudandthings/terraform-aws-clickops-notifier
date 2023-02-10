@@ -1,0 +1,68 @@
+name: release
+
+# Overview ref: https://github.com/googleapis/release-please
+# Configuration ref: https://github.com/google-github-actions/release-please-action
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+
+defaults:
+  # Set shell for steps inside containers (default=sh)
+  run:
+    shell: bash
+
+jobs:
+  release:
+    # For public repos use runs-on: ubuntu-latest
+    # For private repos use runs-on: self-hosted
+    runs-on: ${{ vars.RUNS_ON }}
+    outputs:
+      release_created: ${{ steps.release-please.outputs.release_created }}
+      tag_name: ${{ steps.release-please.outputs.tag_name }}
+    steps:
+      - name: release-please
+        uses: google-github-actions/release-please-action@v3
+        id: release-please
+        with:
+          release-type: simple
+          # These bumps are honoured only if there is an
+          # initial tag of v0.1.0 . Create it manually if needed.
+          #
+          # BREAKING CHANGE only bumps semver minor if version < 1.0.0
+          bump-minor-pre-major: true
+          # feat commits bump semver patch instead of minor if version < 1.0.0
+          bump-patch-for-minor-pre-major: true
+
+  release-assets:
+    needs: [release]
+    if: needs.release.outputs.release_created || github.event_name == 'workflow_dispatch'
+    runs-on: ${{ vars.RUNS_ON }}
+    container: ${{ vars.CONTAINER }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      #--------------------------------------------
+      # Upload deployment as a release asset
+      #--------------------------------------------
+      - name: ⬆️ upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME=
+          if [[ ${{ github.event_name == 'workflow_dispatch' }} == true ]]; then
+            # Get max tag matching: vX.Y.Z
+            TAG_NAME=$(git tag | grep '^v[0-9.]\+$' | sort | tail -n1)
+          else
+            TAG_NAME=${{ needs.release.outputs.tag_name }}
+          fi
+          echo TAG_NAME=$TAG_NAME
+          [[ -z "$TAG_NAME" ]] && { echo "TAG_NAME is empty" ; exit 1; }
+          #
+          gh config set prompt disabled
+          gh release upload $TAG_NAME *.zip

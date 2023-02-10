@@ -54,9 +54,12 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 | <a name="input_log_retention_in_days"></a> [log\_retention\_in\_days](#input\_log\_retention\_in\_days) | Number of days to keep CloudWatch logs | `number` | `14` | no |
 | <a name="input_message_format"></a> [message\_format](#input\_message\_format) | Where do you want to send this message? slack or msteams | `string` | `"slack"` | no |
 | <a name="input_naming_prefix"></a> [naming\_prefix](#input\_naming\_prefix) | Resources will be prefixed with this | `string` | `"clickops-notifier"` | no |
+| <a name="input_s3_bucket"></a> [s3\_bucket](#input\_s3\_bucket) | S3 bucket for deployment package. | `string` | `null` | no |
+| <a name="input_s3_key"></a> [s3\_key](#input\_s3\_key) | S3 object key for deployment package. Otherwise, defaults to `var.naming_prefix/local.deployment_filename`. | `string` | `null` | no |
 | <a name="input_standalone"></a> [standalone](#input\_standalone) | Deploy ClickOps in a standalone account instead of into an entire AWS Organization. Ideal for teams who want to monitor ClickOps in only their accounts where it is not instrumented at an Organizational level. | `bool` | `false` | no |
 | <a name="input_subcription_filter_distribution"></a> [subcription\_filter\_distribution](#input\_subcription\_filter\_distribution) | The method used to distribute log data to the destination. By default log data is grouped by log stream, but the grouping can be set to random for a more even distribution. This property is only applicable when the destination is an Amazon Kinesis stream. Valid values are "Random" and "ByLogStream". | `string` | `"Random"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to add to resources in addition to the default\_tags for the provider | `map(string)` | `{}` | no |
+| <a name="input_upload_deployment_to_s3"></a> [upload\_deployment\_to\_s3](#input\_upload\_deployment\_to\_s3) | If `true`, the deployment package within this module repo will be copied to S3. If `false` then the S3 object must be uploaded separately. Ignored if `s3_bucket` is null. | `bool` | `true` | no |
 | <a name="input_webhook"></a> [webhook](#input\_webhook) | The webhook URL for notifications. https://api.slack.com/messaging/webhooks | `string` | n/a | yes |
 
 ----
@@ -64,7 +67,7 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_clickops_notifier_lambda"></a> [clickops\_notifier\_lambda](#module\_clickops\_notifier\_lambda) | terraform-aws-modules/lambda/aws | 3.2.1 |
+| <a name="module_clickops_notifier_lambda"></a> [clickops\_notifier\_lambda](#module\_clickops\_notifier\_lambda) | terraform-aws-modules/lambda/aws | 4.9.0 |
 
 ----
 ### Outputs
@@ -96,6 +99,7 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 |------|------|
 | [aws_cloudwatch_log_subscription_filter.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_subscription_filter) | resource |
 | [aws_s3_bucket_notification.bucket_notification](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_notification) | resource |
+| [aws_s3_object.deployment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_sqs_queue.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue) | resource |
 | [aws_sqs_queue_policy.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue_policy) | resource |
 | [aws_ssm_parameter.slack_webhook](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |

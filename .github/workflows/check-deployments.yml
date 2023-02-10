@@ -1,0 +1,70 @@
+name: Check deployments
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+
+defaults:
+  # Set shell for steps inside containers (default=sh)
+  run:
+    shell: bash
+
+jobs:
+  #--------------------------------------------------------------
+  # COLLECT DEPLOYMENTS
+  #--------------------------------------------------------------
+  collect:
+    name: 🍱 collect deployments
+    # For public repos use runs-on: ubuntu-latest
+    # For private repos use runs-on: self-hosted
+    runs-on: ${{ vars.RUNS_ON }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: set-matrix
+        run: |
+          MATRIX=$(cat build_targets.json | jq -c)
+          echo $MATRIX
+          cat <<< matrix=$MATRIX >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+  #--------------------------------------------------------------
+  # CHECK DEPLOYMENTS
+  #--------------------------------------------------------------
+  check-deployments:
+    needs: [collect]
+    name: 🔍 check deployment
+    # For public repos use runs-on: ubuntu-latest
+    # For private repos use runs-on: self-hosted
+    runs-on: ${{ vars.RUNS_ON }}
+    strategy:
+      matrix: ${{ fromJson(needs.collect.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+
+      # To test whether the deployment package is up to date,
+      # we only check the application code (excluding dependencies).
+      - run: |
+          NAME=${{ matrix.name }}
+          RUNTIME=${{ matrix.runtime }}
+          #
+          echo NAME=$NAME RUNTIME=$RUNTIME
+          #
+          cp $NAME-$RUNTIME.zip $NAME-$RUNTIME.zip_original
+          cd $NAME
+          zip -r ../$NAME-$RUNTIME.zip .
+          cd ..
+          #
+          # Compare length and names of files in Zip.
+          # Building in Docker doesn't work, some files are still different.
+          [[ -f $NAME-$RUNTIME.zip ]] || { echo "Deployment file not found."; exit 1; }
+          diff \
+            <(unzip -vqq $NAME-$RUNTIME.zip  | awk '{$2=""; $3=""; $4=""; $5=""; $6=""; print}' | sort -k3 -f) \
+            <(unzip -vqq $NAME-$RUNTIME.zip_original  | awk '{$2=""; $3=""; $4=""; $5=""; $6=""; print}' | sort -k3 -f)
+          FILES_CHANGED=$?
+          echo FILES_CHANGED=$FILES_CHANGED

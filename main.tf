@@ -68,17 +68,46 @@ data "aws_iam_policy_document" "lambda_permissions" {
   }
 }
 
+locals {
+
+  deployment_filename = "clickopsnotifier-${var.lambda_runtime}.zip"
+  deployment_path     = "${path.module}/${local.deployment_filename}"
+
+  s3_key = coalesce(var.s3_key, join("/", [var.naming_prefix, local.deployment_filename]))
+}
+
+resource "aws_s3_object" "deployment" {
+  count  = var.upload_deployment_to_s3 && (var.s3_bucket != null) ? 1 : 0
+  bucket = var.s3_bucket
+  key    = local.s3_key
+  source = local.deployment_path
+
+  etag = filemd5(local.deployment_path)
+}
+
 module "clickops_notifier_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "3.2.1"
+  version = "4.9.0"
 
   function_name = var.naming_prefix
   description   = "ClickOps Notifier Lambda"
 
-  handler     = var.standalone ? "main.handler_standalone" : "main.handler_organizational"
-  runtime     = var.lambda_runtime
-  publish     = true
-  source_path = "${path.module}/lambda/app"
+  handler = var.standalone ? "app.handler_standalone" : "app.handler_organizational"
+  runtime = var.lambda_runtime
+
+  # publish = true
+
+  # Where should we get the package from?
+  create_package         = false
+  local_existing_package = var.s3_bucket == null ? local.deployment_path : null
+  s3_existing_package = (
+    var.s3_bucket == null
+    ? null
+    : {
+      bucket = var.s3_bucket
+      key    = local.s3_key
+    }
+  )
 
   timeout     = var.event_processing_timeout
   memory_size = var.lambda_memory_size

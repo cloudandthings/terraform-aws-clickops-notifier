@@ -8,12 +8,12 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "4.9.0"
+      version = "~> 4.9"
     }
 
     random = {
       source  = "hashicorp/random"
-      version = "3.4.3"
+      version = "~> 3.4"
     }
   }
 }
@@ -124,7 +124,7 @@ No outputs.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_random"></a> [random](#provider\_random) | 3.4.3 |
+| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.4 |
 
 ----
 ### Requirements
@@ -132,15 +132,15 @@ No outputs.
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 4.9.0 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | 3.4.3 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.9 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.4 |
 
 ----
 ### Resources
 
 | Name | Type |
 |------|------|
-| [random_pet.run_id](https://registry.terraform.io/providers/hashicorp/random/3.4.3/docs/resources/pet) | resource |
+| [random_pet.run_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
 
 ----
 <!-- END_TF_DOCS -->
