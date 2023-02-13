@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v2.0.0...v2.1.0) (2023-02-02)
+
+
+### Features
+
+* Ability to send ClickOps to Firehose ([#45](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/45)) ([7b9e362](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/7b9e36266991fa41ba5aac198a8b3dba8a202f8b))
+
+
+### Bug Fixes
+
+* Bump min Terraform version from 0.13.1 to 0.14.0 ([14db95e](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/14db95e30be09f9af9e67741967572d2fe3999d5))
+* **examples:** Standalone example works now ([5bb738c](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/5bb738c8a20e0e4f19f4f204c49cc33f56669fa0))
+
 ## [2.0.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v1.6.0...v2.0.0) (2022-12-26)
 
 
