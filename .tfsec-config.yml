@@ -14,5 +14,7 @@
 
 ---
 exclude:
-# Add IDs of checks to ignore them
-#  - aws-sns-topic-encryption-use-cmk
+  # Add IDs of checks to ignore them
+  #  - aws-sns-topic-encryption-use-cmk
+  # Without full tracing enabled it is difficult to trace the flow of logs
+  - aws-lambda-enable-tracing

@@ -59,7 +59,7 @@ jobs:
         if: failure()
         run: |
           LOG_FILE=~/.cache/pre-commit/pre-commit.log
-          [ -f $LOG_FILE ] || cat $LOG_FILE
+          [ -f $LOG_FILE ] && cat $LOG_FILE
 
   #--------------------------------------------------------------
   # TESTS

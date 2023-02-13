@@ -65,4 +65,4 @@ jobs:
           [[ -z "$TAG_NAME" ]] && { echo "TAG_NAME is empty" ; exit 1; }
           #
           gh config set prompt disabled
-          gh release upload $TAG_NAME *.zip
+          gh release upload $TAG_NAME deployment-*.zip

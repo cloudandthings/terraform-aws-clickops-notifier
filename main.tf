@@ -69,11 +69,9 @@ data "aws_iam_policy_document" "lambda_permissions" {
 }
 
 locals {
-
-  deployment_filename = "clickopsnotifier-${var.lambda_runtime}.zip"
+  deployment_filename = "deployment-clickopsnotifier-${var.lambda_runtime}.zip"
   deployment_path     = "${path.module}/${local.deployment_filename}"
-
-  s3_key = coalesce(var.s3_key, join("/", [var.naming_prefix, local.deployment_filename]))
+  s3_key              = coalesce(var.s3_key, join("/", [var.naming_prefix, local.deployment_filename]))
 }
 
 resource "aws_s3_object" "deployment" {
@@ -92,10 +90,10 @@ module "clickops_notifier_lambda" {
   function_name = var.naming_prefix
   description   = "ClickOps Notifier Lambda"
 
-  handler = var.standalone ? "app.handler_standalone" : "app.handler_organizational"
-  runtime = var.lambda_runtime
-
-  # publish = true
+  handler     = var.standalone ? "app.handler_standalone" : "app.handler_organizational"
+  runtime     = var.lambda_runtime
+  timeout     = var.event_processing_timeout
+  memory_size = var.lambda_memory_size
 
   # Where should we get the package from?
   create_package         = false
@@ -109,9 +107,15 @@ module "clickops_notifier_lambda" {
     }
   )
 
-  timeout     = var.event_processing_timeout
-  memory_size = var.lambda_memory_size
+  # Publish creation/changes as a new Lambda Function Version
+  publish = true
 
+  create_lambda_function_url = false
+
+  # Logs
+  cloudwatch_logs_retention_in_days = var.log_retention_in_days
+
+  # IAM
   create_role = var.create_iam_role
   lambda_role = var.iam_role_arn
 
@@ -120,8 +124,6 @@ module "clickops_notifier_lambda" {
 
   attach_policy_statements = length(var.additional_iam_policy_statements) > 0
   policy_statements        = var.additional_iam_policy_statements
-
-  cloudwatch_logs_retention_in_days = var.log_retention_in_days
 
   environment_variables = {
     WEBHOOK_PARAMETER = aws_ssm_parameter.slack_webhook.name
@@ -158,6 +160,10 @@ module "clickops_notifier_lambda" {
   }
 
   tags = var.tags
+
+  depends_on = [
+    aws_s3_object.deployment
+  ]
 }
 
 resource "aws_ssm_parameter" "slack_webhook" {

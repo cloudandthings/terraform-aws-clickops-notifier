@@ -10,6 +10,8 @@ resource "aws_sqs_queue" "bucket_notifications" {
 
   name                       = var.naming_prefix
   visibility_timeout_seconds = var.event_processing_timeout + 5
+
+  sqs_managed_sse_enabled = true
 }
 
 data "aws_iam_policy_document" "bucket_notifications" {

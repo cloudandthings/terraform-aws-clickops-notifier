@@ -52,19 +52,20 @@ jobs:
       - run: |
           NAME=${{ matrix.name }}
           RUNTIME=${{ matrix.runtime }}
+          DEPLOYMENT=deployment-$NAME-$RUNTIME.zip
           #
           echo NAME=$NAME RUNTIME=$RUNTIME
           #
-          cp $NAME-$RUNTIME.zip $NAME-$RUNTIME.zip_original
+          cp $DEPLOYMENT ${DEPLOYMENT}_original
           cd $NAME
-          zip -r ../$NAME-$RUNTIME.zip .
+          zip -r ../$DEPLOYMENT .
           cd ..
           #
           # Compare length and names of files in Zip.
           # Building in Docker doesn't work, some files are still different.
-          [[ -f $NAME-$RUNTIME.zip ]] || { echo "Deployment file not found."; exit 1; }
+          [[ -f $DEPLOYMENT ]] || { echo "Deployment file not found."; exit 1; }
           diff \
-            <(unzip -vqq $NAME-$RUNTIME.zip  | awk '{$2=""; $3=""; $4=""; $5=""; $6=""; print}' | sort -k3 -f) \
-            <(unzip -vqq $NAME-$RUNTIME.zip_original  | awk '{$2=""; $3=""; $4=""; $5=""; $6=""; print}' | sort -k3 -f)
+            <(unzip -vqq $DEPLOYMENT  | awk '{$2=""; $3=""; $4=""; $5=""; $6=""; print}' | sort -k3 -f) \
+            <(unzip -vqq ${DEPLOYMENT}_original  | awk '{$2=""; $3=""; $4=""; $5=""; $6=""; print}' | sort -k3 -f)
           FILES_CHANGED=$?
           echo FILES_CHANGED=$FILES_CHANGED

@@ -11,15 +11,16 @@ NAME=$1
 LAMBDA_RUNTIME=$2
 echo "*** NAME=$NAME  LAMBDA_RUNTIME=$LAMBDA_RUNTIME "
 
-DEPLOYMENT_FILE=$NAME-$LAMBDA_RUNTIME.zip
+DEPLOYMENT_FILE=deployment-$NAME-$LAMBDA_RUNTIME.zip
+
+[[ -d $DEPLOYMENT_FILE ]] && rm -f $DEPLOYMENT_FILE
 
 cd $NAME
 
 [[ -d .package ]] && rm -rf .package
-[[ -d $DEPLOYMENT_FILE ]] && rm -f $DEPLOYMENT_FILE
 
 # Build requirements in Lambda environment
-docker run -v "$PWD":/var/task "public.ecr.aws/sam/build-$LAMBDA_RUNTIME" /bin/sh -c "pip install -r requirements.txt -t .package; exit"
+docker run --platform linux/amd64 -v "$PWD":/var/task "public.ecr.aws/sam/build-$LAMBDA_RUNTIME" /bin/sh -c "pip install -r requirements.txt -t .package; exit"
 
 # Create deployment package
 echo "*** Adding requirements to $DEPLOYMENT_FILE"

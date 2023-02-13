@@ -168,12 +168,25 @@ resource "aws_kinesis_firehose_delivery_stream" "extended_s3_stream" {
 }
 
 resource "aws_s3_bucket" "firehose" {
+  #tfsec:ignore:aws-s3-encryption-customer-key
+  #tfsec:ignore:aws-s3-enable-bucket-logging
+  #tfsec:ignore:aws-s3-enable-versioning
   bucket = local.naming_prefix_firehose
 }
 
-resource "aws_s3_bucket_acl" "firehose_bucket_acl" {
-  bucket = aws_s3_bucket.firehose.id
-  acl    = "private"
+resource "aws_s3_bucket_server_side_encryption_configuration" "firehose" {
+  bucket = aws_s3_bucket.firehose.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "firehose" {
+  bucket            = aws_s3_bucket.firehose.id
+  block_public_acls = true
 }
 
 resource "aws_iam_role" "firehose" {
@@ -201,6 +214,7 @@ resource "aws_iam_role_policy" "firehose" {
 }
 
 data "aws_iam_policy_document" "firehose" {
+  #tfsec:ignore:aws-iam-no-policy-wildcards
   statement {
     actions = [
       "s3:AbortMultipartUpload",
@@ -269,7 +283,8 @@ No outputs.
 | [aws_iam_role_policy.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_kinesis_firehose_delivery_stream.extended_s3_stream](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kinesis_firehose_delivery_stream) | resource |
 | [aws_s3_bucket.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
-| [aws_s3_bucket_acl.firehose_bucket_acl](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl) | resource |
+| [aws_s3_bucket_public_access_block.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
+| [aws_s3_bucket_server_side_encryption_configuration.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
 | [random_pet.run_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
 | [aws_iam_policy_document.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 

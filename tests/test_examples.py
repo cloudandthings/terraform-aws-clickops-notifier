@@ -1,6 +1,6 @@
 import pytest
 
-from conftest import terraform_apply, terraform_plan
+from tests.conftest import terraform_apply, terraform_plan
 
 
 @pytest.mark.slow
