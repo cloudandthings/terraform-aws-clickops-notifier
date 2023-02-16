@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v2.1.0...v3.0.0) (2023-02-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* Lambda deployment options. Use pre-built package by default. And deprecate python3.6. ([#46](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/46))
+
+### Features
+
+* Lambda deployment options. Use pre-built package by default. And deprecate python3.6. ([#46](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/46)) ([0e12d94](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/0e12d946e670a7c8d1759e6ae3a256c01e9a3db0))
+
 ## [2.1.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v2.0.0...v2.1.0) (2023-02-02)
 
 
