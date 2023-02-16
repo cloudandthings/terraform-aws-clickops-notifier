@@ -33,9 +33,6 @@ override.tf.json
 .terraform.lock.hcl
 lambda.zip
 terraform.tfvars
-.env
-.idea
-__pycache__
 
 # Testing artefacts
 tf_resources.json
@@ -44,8 +41,18 @@ test-rsa.*
 *.tar.gz
 test.auto.tfvars*
 
-# VSCode
+# IDEs
 *.code-workspace
+.env
+.idea
 
 # Apple
 .DS_Store
+
+# Lambda packaging
+.package
+
+# Python
+__pycache__
+.venv
+.pytest_cache

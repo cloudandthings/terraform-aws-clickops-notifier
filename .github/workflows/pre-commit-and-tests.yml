@@ -29,8 +29,8 @@ jobs:
     name: 💍 pre-commit
     # For public repos use runs-on: ubuntu-latest
     # For private repos use runs-on: self-hosted
-    runs-on: ubuntu-latest
-    container: bjorncloudandthings/terraform-aws-github:latest
+    runs-on: ${{ vars.RUNS_ON }}
+    container: ${{ vars.CONTAINER }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -41,11 +41,7 @@ jobs:
         run: |
           python -m venv .venv
           source .venv/bin/activate
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          else
-            pip install pre-commit
-          fi
+          pip install pre-commit
       - name: pre-commit run
         run: |
           source .venv/bin/activate
@@ -54,12 +50,16 @@ jobs:
           fi
           echo ...running developer pre-commit checks...
           pre-commit run --config .pre-commit-config.yaml --all-files --show-diff-on-failure
-          # tfsec and checkov are temporarily disabled.
-          # echo ...running remote pre-commit checks...
-          # pre-commit run --config .github/.pre-commit-config.yaml --all-files --show-diff-on-failure
+          if [[ -f .github/.pre-commit-config.yaml ]]; then
+            echo ...running remote pre-commit checks...
+            pip install checkov
+            pre-commit run --config .github/.pre-commit-config.yaml --all-files --show-diff-on-failure
+          fi
       - name: cat pre-commit log
         if: failure()
-        run: cat ~/.cache/pre-commit/pre-commit.log
+        run: |
+          LOG_FILE=~/.cache/pre-commit/pre-commit.log
+          [ -f $LOG_FILE ] && cat $LOG_FILE
 
   #--------------------------------------------------------------
   # TESTS
@@ -69,8 +69,8 @@ jobs:
     name: ✅ tests
     # For public repos use runs-on: ubuntu-latest
     # For private repos use runs-on: self-hosted
-    runs-on: ubuntu-latest
-    container: bjorncloudandthings/terraform-aws-github:latest
+    runs-on: ${{ vars.RUNS_ON }}
+    container: ${{ vars.CONTAINER }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -88,7 +88,7 @@ jobs:
         run: |
           python -m venv .venv
           source .venv/bin/activate
-          pip install -r requirements.txt
+          pip install -r tests/requirements.txt
       - name: Run
         run: |
           source .venv/bin/activate

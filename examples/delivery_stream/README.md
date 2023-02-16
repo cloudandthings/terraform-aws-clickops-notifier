@@ -8,12 +8,12 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "4.9.0"
+      version = "~> 4.9"
     }
 
     random = {
       source  = "hashicorp/random"
-      version = "3.4.3"
+      version = "~> 3.4"
     }
   }
 }
@@ -168,12 +168,25 @@ resource "aws_kinesis_firehose_delivery_stream" "extended_s3_stream" {
 }
 
 resource "aws_s3_bucket" "firehose" {
+  #tfsec:ignore:aws-s3-encryption-customer-key
+  #tfsec:ignore:aws-s3-enable-bucket-logging
+  #tfsec:ignore:aws-s3-enable-versioning
   bucket = local.naming_prefix_firehose
 }
 
-resource "aws_s3_bucket_acl" "firehose_bucket_acl" {
-  bucket = aws_s3_bucket.firehose.id
-  acl    = "private"
+resource "aws_s3_bucket_server_side_encryption_configuration" "firehose" {
+  bucket = aws_s3_bucket.firehose.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "firehose" {
+  bucket            = aws_s3_bucket.firehose.id
+  block_public_acls = true
 }
 
 resource "aws_iam_role" "firehose" {
@@ -201,6 +214,7 @@ resource "aws_iam_role_policy" "firehose" {
 }
 
 data "aws_iam_policy_document" "firehose" {
+  #tfsec:ignore:aws-iam-no-policy-wildcards
   statement {
     actions = [
       "s3:AbortMultipartUpload",
@@ -248,8 +262,8 @@ No outputs.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.9.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.4.3 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.9 |
+| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.4 |
 
 ----
 ### Requirements
@@ -257,21 +271,22 @@ No outputs.
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 4.9.0 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | 3.4.3 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.9 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.4 |
 
 ----
 ### Resources
 
 | Name | Type |
 |------|------|
-| [aws_iam_role.firehose](https://registry.terraform.io/providers/hashicorp/aws/4.9.0/docs/resources/iam_role) | resource |
-| [aws_iam_role_policy.firehose](https://registry.terraform.io/providers/hashicorp/aws/4.9.0/docs/resources/iam_role_policy) | resource |
-| [aws_kinesis_firehose_delivery_stream.extended_s3_stream](https://registry.terraform.io/providers/hashicorp/aws/4.9.0/docs/resources/kinesis_firehose_delivery_stream) | resource |
-| [aws_s3_bucket.firehose](https://registry.terraform.io/providers/hashicorp/aws/4.9.0/docs/resources/s3_bucket) | resource |
-| [aws_s3_bucket_acl.firehose_bucket_acl](https://registry.terraform.io/providers/hashicorp/aws/4.9.0/docs/resources/s3_bucket_acl) | resource |
-| [random_pet.run_id](https://registry.terraform.io/providers/hashicorp/random/3.4.3/docs/resources/pet) | resource |
-| [aws_iam_policy_document.firehose](https://registry.terraform.io/providers/hashicorp/aws/4.9.0/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_role.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_kinesis_firehose_delivery_stream.extended_s3_stream](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kinesis_firehose_delivery_stream) | resource |
+| [aws_s3_bucket.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
+| [aws_s3_bucket_public_access_block.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
+| [aws_s3_bucket_server_side_encryption_configuration.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
+| [random_pet.run_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
+| [aws_iam_policy_document.firehose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ----
 <!-- END_TF_DOCS -->

@@ -4,12 +4,12 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "4.9.0"
+      version = "~> 4.9"
     }
 
     random = {
       source  = "hashicorp/random"
-      version = "3.4.3"
+      version = "~> 3.4"
     }
   }
 }
@@ -164,12 +164,25 @@ resource "aws_kinesis_firehose_delivery_stream" "extended_s3_stream" {
 }
 
 resource "aws_s3_bucket" "firehose" {
+  #tfsec:ignore:aws-s3-encryption-customer-key
+  #tfsec:ignore:aws-s3-enable-bucket-logging
+  #tfsec:ignore:aws-s3-enable-versioning
   bucket = local.naming_prefix_firehose
 }
 
-resource "aws_s3_bucket_acl" "firehose_bucket_acl" {
-  bucket = aws_s3_bucket.firehose.id
-  acl    = "private"
+resource "aws_s3_bucket_server_side_encryption_configuration" "firehose" {
+  bucket = aws_s3_bucket.firehose.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "firehose" {
+  bucket            = aws_s3_bucket.firehose.id
+  block_public_acls = true
 }
 
 resource "aws_iam_role" "firehose" {
@@ -197,6 +210,7 @@ resource "aws_iam_role_policy" "firehose" {
 }
 
 data "aws_iam_policy_document" "firehose" {
+  #tfsec:ignore:aws-iam-no-policy-wildcards
   statement {
     actions = [
       "s3:AbortMultipartUpload",

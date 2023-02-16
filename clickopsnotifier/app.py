@@ -7,26 +7,30 @@ import gzip
 import base64
 import os
 from typing import Tuple
+import logging
 
 from clickops import ClickOpsEventChecker, CloudTrailEvent
 from messenger import Messenger
 from delivery_stream import DeliveryStream
 
-s3 = boto3.client("s3")
-ssm = boto3.client("ssm")
+logger = logging.getLogger("clickopsnotifier")
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+logger.setLevel(LOG_LEVEL)
 
-WEBHOOK_PARAMETER = os.environ["WEBHOOK_PARAMETER"]
-EXCLUDED_ACCOUNTS = json.loads(os.environ["EXCLUDED_ACCOUNTS"])
-INCLUDED_ACCOUNTS = json.loads(os.environ["INCLUDED_ACCOUNTS"])
-EXCLUDED_USERS = json.loads(os.environ["EXCLUDED_USERS"])
-INCLUDED_USERS = json.loads(os.environ["INCLUDED_USERS"])
-EXCLUDED_SCOPED_ACTIONS = json.loads(os.environ["EXCLUDED_SCOPED_ACTIONS"])
-MESSAGE_FORMAT = os.environ["MESSAGE_FORMAT"]
-LOG_LEVEL = os.environ["LOG_LEVEL"]
+WEBHOOK_PARAMETER = os.environ.get("WEBHOOK_PARAMETER", "")
+EXCLUDED_ACCOUNTS = json.loads(os.environ.get("EXCLUDED_ACCOUNTS", "[]"))
+INCLUDED_ACCOUNTS = json.loads(os.environ.get("INCLUDED_ACCOUNTS", "[]"))
+EXCLUDED_USERS = json.loads(os.environ.get("EXCLUDED_USERS", "[]"))
+INCLUDED_USERS = json.loads(os.environ.get("INCLUDED_USERS", "[]"))
+EXCLUDED_SCOPED_ACTIONS = json.loads(os.environ.get("EXCLUDED_SCOPED_ACTIONS", "[]"))
+MESSAGE_FORMAT = os.environ.get("MESSAGE_FORMAT", "slack")
 
 FIREHOSE_DELIVERY_STREAM_NAME = os.environ.get("FIREHOSE_DELIVERY_STREAM_NAME")
 if FIREHOSE_DELIVERY_STREAM_NAME == "__NONE__":
     FIREHOSE_DELIVERY_STREAM_NAME = None
+
+s3 = boto3.client("s3")
+ssm = boto3.client("ssm")
 
 WEBHOOK_URL = None
 
@@ -91,6 +95,9 @@ def handler_organizational(event, context) -> None:  # noqa: C901
     :return: None
     """
 
+    if event is None:
+        raise KeyError("event is None")
+
     webhook_url = get_webhook()
 
     messenger = Messenger(format=MESSAGE_FORMAT, webhook=webhook_url)
@@ -104,7 +111,6 @@ def handler_organizational(event, context) -> None:  # noqa: C901
         records = s3_events.get("Records", [])
 
         for record in records:
-
             # Get the object from the event and show its content type
             bucket = record["s3"]["bucket"]["name"]
             key = urllib.parse.unquote_plus(
@@ -127,7 +133,6 @@ def handler_organizational(event, context) -> None:  # noqa: C901
                 event_json = json.load(fh)
 
                 for event in event_json["Records"]:
-
                     event_origin = f"{bucket}/{key}"
 
                     success = success and __handle_event(
@@ -146,6 +151,8 @@ def handler_organizational(event, context) -> None:  # noqa: C901
 
 
 def handler_standalone(event, context) -> None:
+    if event is None:
+        raise KeyError("event is None")
 
     webhook_url = get_webhook()
 
@@ -161,7 +168,6 @@ def handler_standalone(event, context) -> None:
 
     success = True
     for e in event_json["logEvents"]:
-
         event_origin = (
             event_json["logGroup"]
             + ":"

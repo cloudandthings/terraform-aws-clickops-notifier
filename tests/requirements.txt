@@ -1,0 +1,12 @@
+# TEST REQUIREMENTS
+
+# To use: pip install -r tests/requirements.txt
+
+# Include main requirements
+-r ../clickopsnotifier/requirements.txt
+
+# Additional packages to install when doing testing
+boto3
+pytest
+pytest-depends
+tftest
