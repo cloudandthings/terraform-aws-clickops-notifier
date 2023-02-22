@@ -94,7 +94,7 @@ def handler_organizational(event, context) -> None:  # noqa: C901
     :param context: AWS Lambda Context Object
     :return: None
     """
-
+    logging.debug(f"event={event}")
     if event is None:
         raise KeyError("event is None")
 
@@ -105,46 +105,37 @@ def handler_organizational(event, context) -> None:  # noqa: C901
     delivery_stream = DeliveryStream(delivery_stream_name=FIREHOSE_DELIVERY_STREAM_NAME)
 
     success = True
-    for sqs_record in event["Records"]:
-        s3_events = json.loads(sqs_record["body"])
+    for record in event:
+        # Get the object from the event and show its content type
+        bucket = record["s3"]["bucket"]["name"]
+        key = urllib.parse.unquote_plus(record["s3"]["object"]["key"], encoding="utf-8")
 
-        records = s3_events.get("Records", [])
+        key_elements = key.split("/")
+        if "CloudTrail" not in key_elements:
+            continue
 
-        for record in records:
-            # Get the object from the event and show its content type
-            bucket = record["s3"]["bucket"]["name"]
-            key = urllib.parse.unquote_plus(
-                record["s3"]["object"]["key"], encoding="utf-8"
-            )
+        is_valid_account, reason = valid_account(key)
 
-            key_elements = key.split("/")
-            if "CloudTrail" not in key_elements:
-                continue
+        if not is_valid_account:
+            continue
 
-            is_valid_account, reason = valid_account(key)
+        response = s3.get_object(Bucket=bucket, Key=key)
+        content = response["Body"].read()
 
-            if not is_valid_account:
-                continue
-
-            response = s3.get_object(Bucket=bucket, Key=key)
-            content = response["Body"].read()
-
-            with gzip.GzipFile(fileobj=io.BytesIO(content), mode="rb") as fh:
-                event_json = json.load(fh)
-
-                for event in event_json["Records"]:
-                    event_origin = f"{bucket}/{key}"
-
-                    success = success and __handle_event(
-                        messenger=messenger,
-                        delivery_stream=delivery_stream,
-                        event=event,
-                        event_origin=event_origin,
-                        standalone=False,
-                    )
+        trail_event_origin = f"{bucket}/{key}"
+        with gzip.GzipFile(fileobj=io.BytesIO(content), mode="rb") as fh:
+            trail_event_json = json.load(fh)
+            for trail_event in trail_event_json["Records"]:
+                success = success and __handle_event(
+                    messenger=messenger,
+                    delivery_stream=delivery_stream,
+                    trail_event=trail_event,
+                    trail_event_origin=trail_event_origin,
+                    standalone=False,
+                )
 
     if not success:
-        print("records:\n\n" f"{json.dumps(records)}")
+        logging.error(f"event={json.dumps(event)}")
         raise Exception("A problem occurred, please review error logs.")
 
     return "Completed"
@@ -168,7 +159,7 @@ def handler_standalone(event, context) -> None:
 
     success = True
     for e in event_json["logEvents"]:
-        event_origin = (
+        trail_event_origin = (
             event_json["logGroup"]
             + ":"
             + {event_json["logStream"]}
@@ -179,8 +170,8 @@ def handler_standalone(event, context) -> None:
         success = success and __handle_event(
             messenger=messenger,
             delivery_stream=delivery_stream,
-            event=json.loads(e["message"]),
-            event_origin=event_origin,
+            trail_event=json.loads(e["message"]),
+            trail_event_origin=trail_event_origin,
             standalone=True,
         )
 
@@ -192,9 +183,9 @@ def handler_standalone(event, context) -> None:
 
 
 def __handle_event(
-    messenger, delivery_stream, event, event_origin: str, standalone: bool
+    messenger, delivery_stream, trail_event, trail_event_origin: str, standalone: bool
 ) -> bool:
-    cloudtrail_event = CloudTrailEvent(event)
+    cloudtrail_event = CloudTrailEvent(trail_event)
 
     is_valid_user, reason = valid_user(cloudtrail_event.user_email)
 
@@ -208,17 +199,20 @@ def __handle_event(
     if is_clickops:
         result1 = messenger.send(
             cloudtrail_event.user_email,
-            event,
-            event_origin=event_origin,
+            trail_event,
+            trail_event_origin=trail_event_origin,
             standalone=standalone,
         )
         if not result1:
-            print("[ERROR] Message not sent to webhook.\n\n" f"{json.dumps(event)}")
-        result2 = delivery_stream.send(event)
+            logging.error(
+                "Message not sent to webhook.\n\n"
+                f"trail_event={json.dumps(trail_event)}"
+            )
+        result2 = delivery_stream.send(trail_event)
         if not result2:
-            print(
-                "[ERROR] Message not delivered to delivery stream.\n\n"
-                f"{json.dumps(event)}"
+            logging.error(
+                "Message not delivered to delivery stream.\n\n"
+                f"trail_event={json.dumps(trail_event)}"
             )
         return result1 and result2
 

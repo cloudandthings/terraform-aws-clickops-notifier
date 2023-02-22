@@ -15,9 +15,8 @@ class Messenger:
             raise ValueError("Invalid format, must be ['slack', 'msteams']")
 
     def __send_msteams_message(
-        self, user, event, event_origin: str, standalone: str
+        self, user, trail_event, trail_event_origin: str, standalone: str
     ) -> bool:
-
         payload = {
             "@type": "MessageCard",
             "@context": "http://schema.org/extensions",
@@ -27,15 +26,21 @@ class Messenger:
                 {
                     "activityTitle": f"{'[std]' if standalone else '[org]'} Someone is practicing ClickOps in your AWS Account!",  # noqa: E501
                     "facts": [
-                        {"name": "Account Id", "value": event["recipientAccountId"]},
-                        {"name": "Region", "value": event["awsRegion"]},
+                        {
+                            "name": "Account Id",
+                            "value": trail_event["recipientAccountId"],
+                        },
+                        {"name": "Region", "value": trail_event["awsRegion"]},
                         {"name": "User", "value": user},
                         {
                             "name": "IAM Action",
-                            "value": f"{event['eventSource'].split('.')[0]}:{event['eventName']}",  # noqa: E501
+                            "value": f"{trail_event['eventSource'].split('.')[0]}:{trail_event['eventName']}",  # noqa: E501
                         },
-                        {"name": "Event Log Origin", "value": event_origin},
-                        {"name": "Event", "value": f"```{json.dumps(event, indent=2)}"},
+                        {"name": "Event Log Origin", "value": trail_event_origin},
+                        {
+                            "name": "Event",
+                            "value": f"```{json.dumps(trail_event, indent=2)}",
+                        },
                     ],
                     "markdown": True,
                 }
@@ -48,7 +53,7 @@ class Messenger:
         return True
 
     def __send_slack_message(
-        self, user, event, event_origin: str, standalone: bool
+        self, user, trail_event, trail_event_origin: str, standalone: bool
     ) -> bool:
         payload = {
             "blocks": [
@@ -72,9 +77,12 @@ class Messenger:
                     "fields": [
                         {
                             "type": "mrkdwn",
-                            "text": f"*Account Id*\n{event['recipientAccountId']}",
+                            "text": f"*Account Id*\n{trail_event['recipientAccountId']}",
                         },
-                        {"type": "mrkdwn", "text": f"*Region*\n{event['awsRegion']}"},
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*Region*\n{trail_event['awsRegion']}",
+                        },
                     ],
                 },
                 {
@@ -82,7 +90,7 @@ class Messenger:
                     "fields": [
                         {
                             "type": "mrkdwn",
-                            "text": f"*IAM Action*\n{event['eventSource'].split('.')[0]}:{event['eventName']}",  # noqa: E501
+                            "text": f"*IAM Action*\n{trail_event['eventSource'].split('.')[0]}:{trail_event['eventName']}",  # noqa: E501
                         },
                         {"type": "mrkdwn", "text": f"*Principal*\n{user}"},
                     ],
@@ -92,7 +100,7 @@ class Messenger:
                     "fields": [
                         {
                             "type": "mrkdwn",
-                            "text": f"*Event Log Origin*\n{event_origin}",
+                            "text": f"*Event Log Origin*\n{trail_event_origin}",
                         }
                     ],
                 },
@@ -101,7 +109,7 @@ class Messenger:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"*Event*\n```{json.dumps(event, indent=2)}```",
+                        "text": f"*Event*\n```{json.dumps(trail_event, indent=2)}```",
                     },
                 },
             ]
