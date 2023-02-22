@@ -1,4 +1,6 @@
+# -------------------------------------------------------------------------------------
 # Required Variables
+# -------------------------------------------------------------------------------------
 variable "standalone" {
   type        = bool
   description = "Deploy ClickOps in a standalone account instead of into an entire AWS Organization. Ideal for teams who want to monitor ClickOps in only their accounts where it is not instrumented at an Organizational level."
@@ -23,14 +25,11 @@ variable "webhook" {
   sensitive   = true
 }
 
-variable "firehose_delivery_stream_name" {
-  description = "Kinesis Firehose delivery stream name to output ClickOps events to."
-  type        = string
-  default     = null
-}
+# -------------------------------------------------------------------------------------
+# Optional Variables
+# -------------------------------------------------------------------------------------
 
 # Application Related Optional Variables
-
 variable "message_format" {
   type        = string
   description = "Where do you want to send this message? slack or msteams"
@@ -89,17 +88,10 @@ variable "excluded_scoped_actions_effect" {
 }
 
 # Infrastructure optional variables
-
 variable "naming_prefix" {
   type        = string
   description = "Resources will be prefixed with this"
   default     = "clickops-notifier"
-}
-
-variable "additional_iam_policy_statements" {
-  description = "Map of dynamic policy statements to attach to Lambda Function role"
-  type        = any
-  default     = {}
 }
 
 variable "tags" {
@@ -108,6 +100,7 @@ variable "tags" {
   default     = {}
 }
 
+# Event processing configuration
 variable "event_processing_timeout" {
   type        = number
   description = "Maximum number of seconds the lambda is allowed to run and number of seconds events should be hidden in SQS after being picked up my Lambda."
@@ -132,6 +125,25 @@ variable "log_retention_in_days" {
   default     = 14
 }
 
+# Lambda configuration
+variable "lambda_deployment_s3_bucket" {
+  description = "S3 bucket for lambda deployment package."
+  type        = string
+  default     = null
+}
+
+variable "lambda_deployment_s3_key" {
+  description = "S3 object key for lambda deployment package. Otherwise, defaults to `var.naming_prefix/local.deployment_filename`."
+  type        = string
+  default     = null
+}
+
+variable "lambda_deployment_upload_to_s3_enabled" {
+  description = "If `true`, the lambda deployment package within this module repo will be copied to S3. If `false` then the S3 object must be uploaded separately. Ignored if `lambda_deployment_s3_bucket` is null."
+  type        = bool
+  default     = true
+}
+
 variable "lambda_runtime" {
   type        = string
   description = "The lambda runtime to use. One of: `[\"python3.9\", \"python3.8\", \"python3.7\"]`"
@@ -153,7 +165,7 @@ variable "lambda_memory_size" {
   default     = "128"
 }
 
-# IAM Setup
+# IAM configuration
 variable "create_iam_role" {
   description = "Determines whether a an IAM role is created or to use an existing IAM role"
   type        = bool
@@ -162,6 +174,40 @@ variable "create_iam_role" {
 
 variable "iam_role_arn" {
   description = "Existing IAM role ARN for the lambda. Required if `create_iam_role` is set to `false`"
+  type        = string
+  default     = null
+}
+
+variable "additional_iam_policy_statements" {
+  description = "Map of dynamic policy statements to attach to Lambda Function role"
+  type        = any
+  default     = {}
+}
+
+# Other configuration
+variable "additional_s3_bucket_notification_queues" {
+  description = "Additional SQS queues to configure as targets on the `aws_s3_bucket_notification` resource. See `variables.tf` for more information."
+  type = map(object({
+    # -- More information --
+    #
+    # Ref: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_notification#queue
+    #
+    # Required fields:
+    #
+    queue_arn = string
+    #
+    # Optional fields:
+    #
+    #   events = list(string)
+    #       default value: ["s3:ObjectCreated:*"]
+    #
+    #   filter_suffix = string
+    #       default value: ".json.gz"
+  }))
+  default = {}
+}
+variable "firehose_delivery_stream_name" {
+  description = "Kinesis Firehose delivery stream name to output ClickOps events to."
   type        = string
   default     = null
 }
@@ -178,22 +224,4 @@ variable "subcription_filter_distribution" {
     ], var.subcription_filter_distribution)
     error_message = "Invalid subcription_filter_distribution provided."
   }
-}
-
-variable "s3_bucket" {
-  description = "S3 bucket for deployment package."
-  type        = string
-  default     = null
-}
-
-variable "s3_key" {
-  description = "S3 object key for deployment package. Otherwise, defaults to `var.naming_prefix/local.deployment_filename`."
-  type        = string
-  default     = null
-}
-
-variable "upload_deployment_to_s3" {
-  description = "If `true`, the deployment package within this module repo will be copied to S3. If `false` then the S3 object must be uploaded separately. Ignored if `s3_bucket` is null."
-  type        = bool
-  default     = true
 }

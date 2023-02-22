@@ -51,9 +51,20 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = data.aws_s3_bucket.cloudtrail_bucket[0].id
 
   queue {
+    id            = "ClickOpsNotifier"
     queue_arn     = aws_sqs_queue.bucket_notifications[0].arn
     events        = ["s3:ObjectCreated:*"]
     filter_suffix = ".json.gz"
+  }
+
+  dynamic "queue" {
+    for_each = var.additional_s3_bucket_notification_queues
+    content {
+      id            = each.key
+      queue_arn     = each.value["queue_arn"]
+      events        = try(each.value["events"], ["s3:ObjectCreated:*"])
+      filter_suffix = try(each.value["filter_suffix"], ".json.gz")
+    }
   }
 
   depends_on = [

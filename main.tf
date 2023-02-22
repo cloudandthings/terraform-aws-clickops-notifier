@@ -1,83 +1,59 @@
 data "aws_iam_policy_document" "lambda_permissions" {
 
   statement {
-    sid = "SSMAccess"
-
-    actions = [
-      "ssm:GetParameter"
-    ]
-
-    resources = [
-      aws_ssm_parameter.slack_webhook.arn
-    ]
+    sid       = "SSMAccess"
+    actions   = ["ssm:GetParameter"]
+    resources = [aws_ssm_parameter.slack_webhook.arn]
   }
 
   # Organizational deployment
-
   dynamic "statement" {
-
     for_each = !var.standalone ? toset(["organizational_deployment"]) : toset([])
-
     content {
-      sid = "S3AccessBucket"
-
-      actions = [
-        "s3:ListBucket"
-      ]
-
-      resources = [
-        data.aws_s3_bucket.cloudtrail_bucket[0].arn
-      ]
+      sid       = "S3AccessBucket"
+      actions   = ["s3:ListBucket"]
+      resources = [data.aws_s3_bucket.cloudtrail_bucket[0].arn]
     }
   }
 
   dynamic "statement" {
-
     for_each = !var.standalone ? toset(["organizational_deployment"]) : toset([])
-
     content {
-      sid = "S3AccessBucketObject"
-
-      actions = [
-        "s3:GetObject"
-      ]
-
-      resources = [
-        "${data.aws_s3_bucket.cloudtrail_bucket[0].arn}/*"
-      ]
+      sid       = "S3AccessBucketObject"
+      actions   = ["s3:GetObject"]
+      resources = ["${data.aws_s3_bucket.cloudtrail_bucket[0].arn}/*"]
     }
   }
 
   dynamic "statement" {
-
     for_each = !var.standalone ? toset(["organizational_deployment"]) : toset([])
-
     content {
       sid = "SQSAccess"
-
       actions = [
         "sqs:DeleteMessage",
         "sqs:GetQueueAttributes",
         "sqs:ReceiveMessage"
       ]
-
-      resources = [
-        aws_sqs_queue.bucket_notifications[0].arn
-      ]
+      resources = [aws_sqs_queue.bucket_notifications[0].arn]
     }
   }
 }
 
 locals {
-  deployment_filename = "deployment-clickopsnotifier-${var.lambda_runtime}.zip"
-  deployment_path     = "${path.module}/${local.deployment_filename}"
-  s3_key              = coalesce(var.s3_key, join("/", [var.naming_prefix, local.deployment_filename]))
+  deployment_filename     = "deployment-clickopsnotifier-${var.lambda_runtime}.zip"
+  deployment_path         = "${path.module}/${local.deployment_filename}"
+  deployment_upload_to_s3 = var.lambda_deployment_upload_to_s3_enabled && (var.lambda_deployment_s3_bucket != null)
+  deployment_s3_key = coalesce(
+    var.lambda_deployment_s3_key,
+    join("/", [var.naming_prefix, local.deployment_filename])
+  )
 }
 
 resource "aws_s3_object" "deployment" {
-  count  = var.upload_deployment_to_s3 && (var.s3_bucket != null) ? 1 : 0
-  bucket = var.s3_bucket
-  key    = local.s3_key
+  count = local.deployment_upload_to_s3 ? 1 : 0
+
+  bucket = var.lambda_deployment_s3_bucket
+  key    = local.deployment_s3_key
   source = local.deployment_path
 
   etag = filemd5(local.deployment_path)
@@ -97,13 +73,13 @@ module "clickops_notifier_lambda" {
 
   # Where should we get the package from?
   create_package         = false
-  local_existing_package = var.s3_bucket == null ? local.deployment_path : null
+  local_existing_package = var.lambda_deployment_s3_bucket == null ? local.deployment_path : null
   s3_existing_package = (
-    var.s3_bucket == null
+    var.lambda_deployment_s3_bucket == null
     ? null
     : {
-      bucket = var.s3_bucket
-      key    = local.s3_key
+      bucket = var.lambda_deployment_s3_bucket
+      key    = local.deployment_s3_key
     }
   )
 
@@ -161,13 +137,10 @@ module "clickops_notifier_lambda" {
 
   tags = var.tags
 
-  depends_on = [
-    aws_s3_object.deployment
-  ]
+  depends_on = [aws_s3_object.deployment]
 }
 
 resource "aws_ssm_parameter" "slack_webhook" {
-
   name        = "/${var.naming_prefix}/slack-webhook"
   description = "Incomming webhook for clickops notifications."
 
@@ -175,8 +148,6 @@ resource "aws_ssm_parameter" "slack_webhook" {
   value = var.webhook
 
   lifecycle {
-    ignore_changes = [
-      value,
-    ]
+    ignore_changes = [value, ]
   }
 }
