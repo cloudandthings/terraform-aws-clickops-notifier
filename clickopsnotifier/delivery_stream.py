@@ -1,15 +1,16 @@
 import boto3
 import json
+import logging
 
 
 class FakeClient:
-    def put_record_batch(self, Records=None):
-        print(f"FakeClient put_record_batch: {len(Records)} records")
+    def put_record_batch(self, **kwargs):
+        num_records = len(kwargs.get("Records", []))
+        logging.debug(f"FakeClient put_record_batch: {num_records} records")
         return {"FailedPutCount": 0}
 
 
 class DeliveryStream:
-
     delivery_stream_name = None
     client = None
 
