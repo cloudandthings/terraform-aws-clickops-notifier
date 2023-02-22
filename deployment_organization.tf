@@ -60,10 +60,10 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   dynamic "queue" {
     for_each = var.additional_s3_bucket_notification_queues
     content {
-      id            = each.key
-      queue_arn     = each.value["queue_arn"]
-      events        = try(each.value["events"], ["s3:ObjectCreated:*"])
-      filter_suffix = try(each.value["filter_suffix"], ".json.gz")
+      id            = queue.key
+      queue_arn     = queue.value["queue_arn"]
+      events        = try(queue.value["events"], ["s3:ObjectCreated:*"])
+      filter_suffix = try(queue.value["filter_suffix"], ".json.gz")
     }
   }
 
