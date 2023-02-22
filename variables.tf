@@ -78,6 +78,7 @@ variable "excluded_scoped_actions_effect" {
   type        = string
   description = "Should the existing exluded actions be replaces or appended to. By default it will append to the list, valid values: APPEND, REPLACE"
   default     = "APPEND"
+
   validation {
     condition = contains([
       "APPEND",
@@ -185,27 +186,6 @@ variable "additional_iam_policy_statements" {
 }
 
 # Other configuration
-variable "additional_s3_bucket_notification_queues" {
-  description = "Additional SQS queues to configure as targets on the `aws_s3_bucket_notification` resource. See `variables.tf` for more information."
-  type = map(object({
-    # -- More information --
-    #
-    # Ref: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_notification#queue
-    #
-    # Required fields:
-    #
-    queue_arn = string
-    #
-    # Optional fields:
-    #
-    #   events = list(string)
-    #       default value: ["s3:ObjectCreated:*"]
-    #
-    #   filter_suffix = string
-    #       default value: ".json.gz"
-  }))
-  default = {}
-}
 variable "firehose_delivery_stream_name" {
   description = "Kinesis Firehose delivery stream name to output ClickOps events to."
   type        = string
