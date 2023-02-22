@@ -40,8 +40,9 @@ data "aws_iam_policy_document" "lambda_permissions" {
 }
 
 locals {
-  deployment_filename = "deployment-clickopsnotifier-${var.lambda_runtime}.zip"
-  deployment_path     = "${path.module}/${local.deployment_filename}"
+  deployment_filename     = "deployment-clickopsnotifier-${var.lambda_runtime}.zip"
+  deployment_path         = "${path.module}/${local.deployment_filename}"
+  deployment_upload_to_s3 = var.lambda_deployment_upload_to_s3_enabled && (var.lambda_deployment_s3_bucket != null)
   deployment_s3_key = coalesce(
     var.lambda_deployment_s3_key,
     join("/", [var.naming_prefix, local.deployment_filename])
@@ -49,7 +50,8 @@ locals {
 }
 
 resource "aws_s3_object" "deployment" {
-  count  = var.lambda_deployment_upload_to_s3 && (var.lambda_deployment_s3_bucket != null) ? 1 : 0
+  count = local.deployment_upload_to_s3 ? 1 : 0
+
   bucket = var.lambda_deployment_s3_bucket
   key    = local.deployment_s3_key
   source = local.deployment_path

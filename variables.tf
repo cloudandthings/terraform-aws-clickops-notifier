@@ -138,7 +138,7 @@ variable "lambda_deployment_s3_key" {
   default     = null
 }
 
-variable "lambda_deployment_upload_to_s3" {
+variable "lambda_deployment_upload_to_s3_enabled" {
   description = "If `true`, the lambda deployment package within this module repo will be copied to S3. If `false` then the S3 object must be uploaded separately. Ignored if `lambda_deployment_s3_bucket` is null."
   type        = bool
   default     = true
