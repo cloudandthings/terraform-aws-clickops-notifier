@@ -166,6 +166,22 @@ variable "lambda_memory_size" {
   default     = "128"
 }
 
+variable "lambda_log_level" {
+  description = "Lambda logging level. One of: `[\"DEBUG\", \"INFO\", \"WARN\", \"ERROR\"]`."
+  type        = string
+  default     = "WARN"
+
+  validation {
+    condition = contains([
+      "DEBUG",
+      "INFO",
+      "WARN",
+      "ERROR"
+    ], var.lambda_log_level)
+    error_message = "Invalid lambda_log_level provided."
+  }
+}
+
 # IAM configuration
 variable "create_iam_role" {
   description = "Determines whether a an IAM role is created or to use an existing IAM role"

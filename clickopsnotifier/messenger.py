@@ -1,5 +1,6 @@
 import json
 import requests
+import logging
 
 
 class Messenger:
@@ -46,15 +47,22 @@ class Messenger:
                 }
             ],
         }
-
         response = requests.post(self.webhook, json=payload)
         if response.status_code != 200:
+            logging.info(f"json payload:\n\n{json.dumps(payload)}")
+            logging.error(f"response.content={response.content}")
             return False
         return True
 
     def __send_slack_message(
         self, user, trail_event, trail_event_origin: str, standalone: bool
     ) -> bool:
+        # Maximum length for a section block is 3k so truncate to 2900
+        formatted_event = json.dumps(trail_event, indent=2)
+        if len(formatted_event) < 2900:
+            formatted_event = f"*Event*\n```{formatted_event}```"
+        else:
+            formatted_event = f"*Event (truncated)*\n```{formatted_event[:2900]}```"
         payload = {
             "blocks": [
                 {
@@ -109,14 +117,14 @@ class Messenger:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"*Event*\n```{json.dumps(trail_event, indent=2)}```",
+                        "text": formatted_event,
                     },
                 },
             ]
         }
-
         response = requests.post(self.webhook, json=payload)
         if response.status_code != 200:
-            print(response.content)
+            logging.info(f"json payload:\n\n{json.dumps(payload)}")
+            logging.error(f"response.content={response.content}")
             return False
         return True

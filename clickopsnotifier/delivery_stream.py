@@ -6,7 +6,7 @@ import logging
 class FakeClient:
     def put_record_batch(self, **kwargs):
         num_records = len(kwargs.get("Records", []))
-        logging.debug(f"FakeClient put_record_batch: {num_records} records")
+        logging.info(f"FakeClient put_record_batch: {num_records} records")
         return {"FailedPutCount": 0}
 
 
