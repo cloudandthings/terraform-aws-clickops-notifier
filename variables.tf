@@ -78,6 +78,7 @@ variable "excluded_scoped_actions_effect" {
   type        = string
   description = "Should the existing exluded actions be replaces or appended to. By default it will append to the list, valid values: APPEND, REPLACE"
   default     = "APPEND"
+
   validation {
     condition = contains([
       "APPEND",
