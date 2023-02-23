@@ -144,7 +144,6 @@ def handler_organizational(event, context) -> None:  # noqa: C901
                         trail_event_origin=trail_event_origin,
                         standalone=False,
                     )
-                    logging.info(f"{success=}")
 
     if not success:
         logging.error(f"event={json.dumps(event)}")
@@ -208,7 +207,6 @@ def __handle_event(
     clickops_checker = ClickOpsEventChecker(cloudtrail_event, EXCLUDED_SCOPED_ACTIONS)
 
     is_clickops, reason = clickops_checker.is_clickops()
-    logging.info(f"{is_clickops=}")
 
     if is_clickops:
         result1 = messenger.send(

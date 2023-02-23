@@ -23,25 +23,36 @@ data "aws_s3_bucket" "cloudtrail_bucket" {
 resource "aws_sns_topic" "bucket_notifications" {
   count = var.standalone ? 0 : 1
 
-  name              = var.naming_prefix
-  kms_master_key_id = "alias/aws/sns"
+  name = var.naming_prefix
+  # Cannot use AWS managed KMS key with S3 bucket notifications
+  # kms_master_key_id = "alias/aws/sns"
+
+  # TODO - temporary monitoring of SNS
+  sqs_success_feedback_role_arn    = aws_iam_role.sns_feedback.arn
+  sqs_success_feedback_sample_rate = 10
+  sqs_failure_feedback_role_arn    = aws_iam_role.sns_feedback.arn
 }
 
 data "aws_iam_policy_document" "sns_topic_policy_bucket_notifications" {
   count = var.standalone ? 0 : 1
 
   statement {
-    actions   = ["sns:Publish"]
+    actions   = ["SNS:Publish"]
     effect    = "Allow"
     resources = [aws_sns_topic.bucket_notifications[0].arn]
     principals {
-      type        = "AWS"
-      identifiers = ["*"]
+      type        = "Service"
+      identifiers = ["s3.amazonaws.com"]
     }
     condition {
       test     = "ArnEquals"
       variable = "aws:SourceArn"
       values   = [data.aws_s3_bucket.cloudtrail_bucket[0].arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
     }
   }
 }
@@ -51,6 +62,49 @@ resource "aws_sns_topic_policy" "bucket_notifications" {
 
   arn    = aws_sns_topic.bucket_notifications[0].arn
   policy = data.aws_iam_policy_document.sns_topic_policy_bucket_notifications[0].json
+
+}
+
+# TODO tags to all resources
+# TODO remove
+resource "aws_iam_role" "sns_feedback" {
+  name = "${var.naming_prefix}-sns-feedback"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = "SnsAssume"
+        Principal = {
+          Service = "sns.amazonaws.com"
+        }
+      },
+    ]
+  })
+
+  inline_policy {
+    name = "${var.naming_prefix}-sns-feedback"
+
+    policy = jsonencode({
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Action = [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+            "logs:PutMetricFilter",
+            "logs:PutRetentionPolicy",
+          ]
+          Effect   = "Allow"
+          Resource = "*"
+        },
+      ]
+    })
+  }
+
 }
 
 #--------------------------------------------------------------------------------------
