@@ -46,12 +46,59 @@ module "clickops_notifications" {
   webhook                = "https://fake.com"
   message_format         = "slack"
   tags                   = local.tags
+
+  # Optional
+  kms_key_id_for_sns_topic = aws_kms_key.clickops_sns_topic.arn
 }
 
 
 resource "aws_s3_bucket" "test_bucket" {
   bucket = local.naming_prefix
   tags   = local.tags
+}
+
+# To encrypt the SNS topic
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_policy_document" "clickops_sns_topic" {
+  statement {
+    sid = "Enable IAM User Permissions"
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+    actions   = ["kms:*"]
+    resources = ["*"]
+  }
+  statement {
+    principals {
+      type        = "Service"
+      identifiers = ["s3.amazonaws.com"]
+    }
+    actions = [
+      "kms:GenerateDataKey*",
+      "kms:Decrypt"
+    ]
+    resources = ["*"]
+    condition {
+      test     = "ArnEquals"
+      variable = "aws:SourceArn"
+      values   = [aws_s3_bucket.test_bucket.arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+  }
+}
+
+resource "aws_kms_key" "clickops_sns_topic" {
+  description             = "KMS key for SNS topic ${local.naming_prefix}"
+  deletion_window_in_days = 7
+  policy                  = data.aws_iam_policy_document.clickops_sns_topic.json
+
+  tags = local.tags
 }
 ```
 ----
@@ -99,8 +146,11 @@ No outputs.
 
 | Name | Type |
 |------|------|
+| [aws_kms_key.clickops_sns_topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
 | [aws_s3_bucket.test_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [random_pet.run_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_iam_policy_document.clickops_sns_topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ----
 <!-- END_TF_DOCS -->

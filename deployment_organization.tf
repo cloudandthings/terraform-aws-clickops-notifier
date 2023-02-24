@@ -27,6 +27,7 @@ resource "aws_sns_topic" "bucket_notifications" {
   # Cannot use AWS managed KMS key with S3 bucket notifications
   # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/sns-not-receiving-s3-event-notifications/
   # kms_master_key_id = "alias/aws/sns"
+  kms_master_key_id = var.kms_key_id_for_sns_topic
 
   tags = var.tags
 }

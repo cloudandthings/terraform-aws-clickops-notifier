@@ -201,6 +201,13 @@ variable "additional_iam_policy_statements" {
   default     = {}
 }
 
+# Encryption configuration
+variable "kms_key_id_for_sns_topic" {
+  description = "KMS key ID for encrypting the sns_topic (only applicable to org deployments)."
+  type        = string
+  default     = null
+}
+
 # Other configuration
 variable "firehose_delivery_stream_name" {
   description = "Kinesis Firehose delivery stream name to output ClickOps events to."
