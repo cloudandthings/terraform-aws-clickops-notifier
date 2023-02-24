@@ -147,6 +147,7 @@ resource "aws_ssm_parameter" "slack_webhook" {
   type  = "SecureString"
   value = var.webhook
 
+  tags = var.tags
   lifecycle {
     ignore_changes = [value, ]
   }

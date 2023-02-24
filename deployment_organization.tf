@@ -25,12 +25,10 @@ resource "aws_sns_topic" "bucket_notifications" {
 
   name = var.naming_prefix
   # Cannot use AWS managed KMS key with S3 bucket notifications
+  # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/sns-not-receiving-s3-event-notifications/
   # kms_master_key_id = "alias/aws/sns"
 
-  # TODO - temporary monitoring of SNS
-  sqs_success_feedback_role_arn    = aws_iam_role.sns_feedback.arn
-  sqs_success_feedback_sample_rate = 10
-  sqs_failure_feedback_role_arn    = aws_iam_role.sns_feedback.arn
+  tags = var.tags
 }
 
 data "aws_iam_policy_document" "sns_topic_policy_bucket_notifications" {
@@ -65,48 +63,6 @@ resource "aws_sns_topic_policy" "bucket_notifications" {
 
 }
 
-# TODO tags to all resources
-# TODO remove
-resource "aws_iam_role" "sns_feedback" {
-  name = "${var.naming_prefix}-sns-feedback"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = "SnsAssume"
-        Principal = {
-          Service = "sns.amazonaws.com"
-        }
-      },
-    ]
-  })
-
-  inline_policy {
-    name = "${var.naming_prefix}-sns-feedback"
-
-    policy = jsonencode({
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Action = [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents",
-            "logs:PutMetricFilter",
-            "logs:PutRetentionPolicy",
-          ]
-          Effect   = "Allow"
-          Resource = "*"
-        },
-      ]
-    })
-  }
-
-}
-
 #--------------------------------------------------------------------------------------
 # aws_s3_bucket_notification
 #--------------------------------------------------------------------------------------
@@ -136,6 +92,7 @@ resource "aws_sqs_queue" "bucket_notifications" {
   visibility_timeout_seconds = var.event_processing_timeout + 5
 
   sqs_managed_sse_enabled = true
+  tags                    = var.tags
 }
 
 data "aws_iam_policy_document" "bucket_notifications" {
