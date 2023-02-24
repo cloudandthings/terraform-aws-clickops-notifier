@@ -209,6 +209,12 @@ variable "kms_key_id_for_sns_topic" {
 }
 
 # Other configuration
+variable "allowed_aws_principals_for_sns_subscribe" {
+  description = "List of AWS principals allowed to subscribe to the SNS topic (only applicable to org deployments)."
+  type        = list(string)
+  default     = []
+}
+
 variable "firehose_delivery_stream_name" {
   description = "Kinesis Firehose delivery stream name to output ClickOps events to."
   type        = string

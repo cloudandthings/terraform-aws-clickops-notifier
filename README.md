@@ -35,6 +35,7 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_additional_iam_policy_statements"></a> [additional\_iam\_policy\_statements](#input\_additional\_iam\_policy\_statements) | Map of dynamic policy statements to attach to Lambda Function role | `any` | `{}` | no |
+| <a name="input_allowed_aws_principals_for_sns_subscribe"></a> [allowed\_aws\_principals\_for\_sns\_subscribe](#input\_allowed\_aws\_principals\_for\_sns\_subscribe) | List of AWS principals allowed to subscribe to the SNS topic (only applicable to org deployments). | `list(string)` | `[]` | no |
 | <a name="input_cloudtrail_bucket_name"></a> [cloudtrail\_bucket\_name](#input\_cloudtrail\_bucket\_name) | Bucket containing the Cloudtrail logs that you want to process. ControlTower bucket name follows this naming convention `aws-controltower-logs-{{account_id}}-{{region}}` | `string` | `""` | no |
 | <a name="input_cloudtrail_log_group"></a> [cloudtrail\_log\_group](#input\_cloudtrail\_log\_group) | CloudWatch Log group for CloudTrail events. | `string` | `""` | no |
 | <a name="input_create_iam_role"></a> [create\_iam\_role](#input\_create\_iam\_role) | Determines whether a an IAM role is created or to use an existing IAM role | `bool` | `true` | no |

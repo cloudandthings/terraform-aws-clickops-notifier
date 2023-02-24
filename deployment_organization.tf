@@ -31,11 +31,17 @@ resource "aws_sns_topic" "bucket_notifications" {
 
   tags = var.tags
 }
-
+locals {
+  allowed_aws_principals_for_sns_subscribe = {
+    for i, x in var.allowed_aws_principals_for_sns_subscribe :
+    i => x
+  }
+}
 data "aws_iam_policy_document" "sns_topic_policy_bucket_notifications" {
   count = var.standalone ? 0 : 1
 
   statement {
+    sid       = "AllowS3BucketNotificationToSNSPublish"
     actions   = ["SNS:Publish"]
     effect    = "Allow"
     resources = [aws_sns_topic.bucket_notifications[0].arn]
@@ -52,6 +58,20 @@ data "aws_iam_policy_document" "sns_topic_policy_bucket_notifications" {
       test     = "StringEquals"
       variable = "aws:SourceAccount"
       values   = [data.aws_caller_identity.current.account_id]
+    }
+  }
+  dynamic "statement" {
+    for_each = !var.standalone ? local.allowed_aws_principals_for_sns_subscribe : {}
+
+    content {
+      sid       = "AllowAWSPrincipalToSNSSubscribe${statement.key}"
+      actions   = ["sns:Subscribe"]
+      effect    = "Allow"
+      resources = [aws_sns_topic.bucket_notifications[0].arn]
+      principals {
+        type        = "AWS"
+        identifiers = [statement.value]
+      }
     }
   }
 }
