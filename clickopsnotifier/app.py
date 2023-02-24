@@ -13,9 +13,8 @@ from clickops import ClickOpsEventChecker, CloudTrailEvent
 from messenger import Messenger
 from delivery_stream import DeliveryStream
 
-logger = logging.getLogger("clickopsnotifier")
-LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
-logger.setLevel(LOG_LEVEL)
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "WARN")
+logging.getLogger().setLevel(LOG_LEVEL)
 
 WEBHOOK_PARAMETER = os.environ.get("WEBHOOK_PARAMETER", "")
 EXCLUDED_ACCOUNTS = json.loads(os.environ.get("EXCLUDED_ACCOUNTS", "[]"))
@@ -82,7 +81,7 @@ def valid_user(email) -> Tuple[bool, str]:
     if email in INCLUDED_USERS:
         return True, f"[VU_EXPLICIT_INCLUDE] {email} in {json.dumps(INCLUDED_USERS)}"
 
-    print(f"[VU_IMPLICIT_EXCLUDE] {email} not in {json.dumps(INCLUDED_USERS)}")
+    logging.info(f"[VU_IMPLICIT_EXCLUDE] {email} not in {json.dumps(INCLUDED_USERS)}")
     return False
 
 
@@ -94,9 +93,10 @@ def handler_organizational(event, context) -> None:  # noqa: C901
     :param context: AWS Lambda Context Object
     :return: None
     """
-
+    logging.info(f"event={event}")
     if event is None:
         raise KeyError("event is None")
+    sqs_records = event["Records"]
 
     webhook_url = get_webhook()
 
@@ -105,46 +105,49 @@ def handler_organizational(event, context) -> None:  # noqa: C901
     delivery_stream = DeliveryStream(delivery_stream_name=FIREHOSE_DELIVERY_STREAM_NAME)
 
     success = True
-    for sqs_record in event["Records"]:
-        s3_events = json.loads(sqs_record["body"])
 
-        records = s3_events.get("Records", [])
-
-        for record in records:
+    for sqs_record in sqs_records:
+        logging.debug(f"{sqs_record=}")
+        sqs_body = json.loads(sqs_record["body"])
+        sqs_body_message = json.loads(sqs_body["Message"])
+        s3_event_records = sqs_body_message["Records"]
+        for s3_event_record in s3_event_records:
+            logging.debug(f"{s3_event_record=}")
             # Get the object from the event and show its content type
-            bucket = record["s3"]["bucket"]["name"]
-            key = urllib.parse.unquote_plus(
-                record["s3"]["object"]["key"], encoding="utf-8"
-            )
+            bucket = s3_event_record["s3"]["bucket"]["name"]
 
+            key = urllib.parse.unquote_plus(
+                s3_event_record["s3"]["object"]["key"], encoding="utf-8"
+            )
             key_elements = key.split("/")
             if "CloudTrail" not in key_elements:
+                logging.debug("Skipping; CloudTrail is not in the S3 key.")
                 continue
 
             is_valid_account, reason = valid_account(key)
 
             if not is_valid_account:
+                logging.info(f"Skipping; Not a valid account. {reason=}.")
                 continue
 
             response = s3.get_object(Bucket=bucket, Key=key)
             content = response["Body"].read()
 
+            trail_event_origin = f"{bucket}/{key}"
             with gzip.GzipFile(fileobj=io.BytesIO(content), mode="rb") as fh:
-                event_json = json.load(fh)
-
-                for event in event_json["Records"]:
-                    event_origin = f"{bucket}/{key}"
-
+                trail_event_json = json.load(fh)
+                logging.debug(f"{trail_event_json=}")
+                for trail_event in trail_event_json["Records"]:
                     success = success and __handle_event(
                         messenger=messenger,
                         delivery_stream=delivery_stream,
-                        event=event,
-                        event_origin=event_origin,
+                        trail_event=trail_event,
+                        trail_event_origin=trail_event_origin,
                         standalone=False,
                     )
 
     if not success:
-        print("records:\n\n" f"{json.dumps(records)}")
+        logging.error(f"event={json.dumps(event)}")
         raise Exception("A problem occurred, please review error logs.")
 
     return "Completed"
@@ -164,11 +167,11 @@ def handler_standalone(event, context) -> None:
     event_uncompressed = gzip.decompress(event_decoded_compressed)
     event_json = json.loads(event_uncompressed)
 
-    # print(event_uncompressed)
+    # logging.info(event_uncompressed)
 
     success = True
     for e in event_json["logEvents"]:
-        event_origin = (
+        trail_event_origin = (
             event_json["logGroup"]
             + ":"
             + {event_json["logStream"]}
@@ -179,27 +182,28 @@ def handler_standalone(event, context) -> None:
         success = success and __handle_event(
             messenger=messenger,
             delivery_stream=delivery_stream,
-            event=json.loads(e["message"]),
-            event_origin=event_origin,
+            trail_event=json.loads(e["message"]),
+            trail_event_origin=trail_event_origin,
             standalone=True,
         )
 
     if not success:
-        print("event_uncompressed:\n\n" + event_uncompressed)
+        logging.info("event_uncompressed:\n\n" + event_uncompressed)
         raise Exception("A problem occurred, please review error logs.")
 
     return "Completed"
 
 
 def __handle_event(
-    messenger, delivery_stream, event, event_origin: str, standalone: bool
+    messenger, delivery_stream, trail_event, trail_event_origin: str, standalone: bool
 ) -> bool:
-    cloudtrail_event = CloudTrailEvent(event)
+    cloudtrail_event = CloudTrailEvent(trail_event)
 
     is_valid_user, reason = valid_user(cloudtrail_event.user_email)
 
     if not is_valid_user:
-        return
+        logging.info(f"Skipping; Not a valid user. {reason=}")
+        return True
 
     clickops_checker = ClickOpsEventChecker(cloudtrail_event, EXCLUDED_SCOPED_ACTIONS)
 
@@ -208,17 +212,20 @@ def __handle_event(
     if is_clickops:
         result1 = messenger.send(
             cloudtrail_event.user_email,
-            event,
-            event_origin=event_origin,
+            trail_event,
+            trail_event_origin=trail_event_origin,
             standalone=standalone,
         )
         if not result1:
-            print("[ERROR] Message not sent to webhook.\n\n" f"{json.dumps(event)}")
-        result2 = delivery_stream.send(event)
+            logging.error(
+                "Message not sent to webhook.\n\n"
+                f"trail_event={json.dumps(trail_event)}"
+            )
+        result2 = delivery_stream.send(trail_event)
         if not result2:
-            print(
-                "[ERROR] Message not delivered to delivery stream.\n\n"
-                f"{json.dumps(event)}"
+            logging.error(
+                "Message not delivered to delivery stream.\n\n"
+                f"trail_event={json.dumps(trail_event)}"
             )
         return result1 and result2
 

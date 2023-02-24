@@ -23,25 +23,34 @@ data "aws_s3_bucket" "cloudtrail_bucket" {
 resource "aws_sns_topic" "bucket_notifications" {
   count = var.standalone ? 0 : 1
 
-  name              = var.naming_prefix
-  kms_master_key_id = "alias/aws/sns"
+  name = var.naming_prefix
+  # Cannot use AWS managed KMS key with S3 bucket notifications
+  # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/sns-not-receiving-s3-event-notifications/
+  # kms_master_key_id = "alias/aws/sns"
+
+  tags = var.tags
 }
 
 data "aws_iam_policy_document" "sns_topic_policy_bucket_notifications" {
   count = var.standalone ? 0 : 1
 
   statement {
-    actions   = ["sns:Publish"]
+    actions   = ["SNS:Publish"]
     effect    = "Allow"
     resources = [aws_sns_topic.bucket_notifications[0].arn]
     principals {
-      type        = "AWS"
-      identifiers = ["*"]
+      type        = "Service"
+      identifiers = ["s3.amazonaws.com"]
     }
     condition {
       test     = "ArnEquals"
       variable = "aws:SourceArn"
       values   = [data.aws_s3_bucket.cloudtrail_bucket[0].arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
     }
   }
 }
@@ -51,6 +60,7 @@ resource "aws_sns_topic_policy" "bucket_notifications" {
 
   arn    = aws_sns_topic.bucket_notifications[0].arn
   policy = data.aws_iam_policy_document.sns_topic_policy_bucket_notifications[0].json
+
 }
 
 #--------------------------------------------------------------------------------------
@@ -82,6 +92,7 @@ resource "aws_sqs_queue" "bucket_notifications" {
   visibility_timeout_seconds = var.event_processing_timeout + 5
 
   sqs_managed_sse_enabled = true
+  tags                    = var.tags
 }
 
 data "aws_iam_policy_document" "bucket_notifications" {

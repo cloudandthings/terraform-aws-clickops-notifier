@@ -114,7 +114,7 @@ module "clickops_notifier_lambda" {
 
     MESSAGE_FORMAT = var.message_format
 
-    LOG_LEVEL = "INFO"
+    LOG_LEVEL = var.lambda_log_level
 
     FIREHOSE_DELIVERY_STREAM_NAME = coalesce(var.firehose_delivery_stream_name, "__NONE__")
   }
@@ -147,6 +147,7 @@ resource "aws_ssm_parameter" "slack_webhook" {
   type  = "SecureString"
   value = var.webhook
 
+  tags = var.tags
   lifecycle {
     ignore_changes = [value, ]
   }

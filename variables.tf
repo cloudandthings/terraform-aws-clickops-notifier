@@ -111,7 +111,7 @@ variable "event_processing_timeout" {
 variable "event_batch_size" {
   type        = number
   description = "Batch events into chunks of `event_batch_size`"
-  default     = 10
+  default     = 100
 }
 
 variable "event_maximum_batching_window" {
@@ -164,6 +164,22 @@ variable "lambda_memory_size" {
   type        = number
   description = "The amount of memory for Lambda to use"
   default     = "128"
+}
+
+variable "lambda_log_level" {
+  description = "Lambda logging level. One of: `[\"DEBUG\", \"INFO\", \"WARN\", \"ERROR\"]`."
+  type        = string
+  default     = "WARN"
+
+  validation {
+    condition = contains([
+      "DEBUG",
+      "INFO",
+      "WARN",
+      "ERROR"
+    ], var.lambda_log_level)
+    error_message = "Invalid lambda_log_level provided."
+  }
 }
 
 # IAM configuration
