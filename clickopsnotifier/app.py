@@ -107,11 +107,12 @@ def handler_organizational(event, context) -> None:  # noqa: C901
     success = True
 
     for sqs_record in sqs_records:
-        logging.info(f"{sqs_record=}")
-        sqs_record_body = json.loads(sqs_record["body"])
-        s3_event_records = sqs_record_body.get("Records", [])
+        logging.debug(f"{sqs_record=}")
+        sqs_body = json.loads(sqs_record["body"])
+        sqs_body_message = json.loads(sqs_body["Message"])
+        s3_event_records = sqs_body_message["Records"]
         for s3_event_record in s3_event_records:
-            logging.info(f"{s3_event_record=}")
+            logging.debug(f"{s3_event_record=}")
             # Get the object from the event and show its content type
             bucket = s3_event_record["s3"]["bucket"]["name"]
 
@@ -120,13 +121,13 @@ def handler_organizational(event, context) -> None:  # noqa: C901
             )
             key_elements = key.split("/")
             if "CloudTrail" not in key_elements:
-                logging.info("Skipping record; CloudTrail is not in the S3 key.")
+                logging.debug("Skipping; CloudTrail is not in the S3 key.")
                 continue
 
             is_valid_account, reason = valid_account(key)
 
             if not is_valid_account:
-                logging.info("Skipping record; Not a valid account.")
+                logging.info(f"Skipping; Not a valid account. {reason=}.")
                 continue
 
             response = s3.get_object(Bucket=bucket, Key=key)
@@ -135,7 +136,7 @@ def handler_organizational(event, context) -> None:  # noqa: C901
             trail_event_origin = f"{bucket}/{key}"
             with gzip.GzipFile(fileobj=io.BytesIO(content), mode="rb") as fh:
                 trail_event_json = json.load(fh)
-                logging.info(f"{trail_event_json=}")
+                logging.debug(f"{trail_event_json=}")
                 for trail_event in trail_event_json["Records"]:
                     success = success and __handle_event(
                         messenger=messenger,
@@ -201,7 +202,7 @@ def __handle_event(
     is_valid_user, reason = valid_user(cloudtrail_event.user_email)
 
     if not is_valid_user:
-        logging.info("Skipping; Is not valid user.")
+        logging.info(f"Skipping; Not a valid user. {reason=}")
         return True
 
     clickops_checker = ClickOpsEventChecker(cloudtrail_event, EXCLUDED_SCOPED_ACTIONS)

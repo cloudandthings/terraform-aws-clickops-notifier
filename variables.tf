@@ -111,7 +111,7 @@ variable "event_processing_timeout" {
 variable "event_batch_size" {
   type        = number
   description = "Batch events into chunks of `event_batch_size`"
-  default     = 10
+  default     = 100
 }
 
 variable "event_maximum_batching_window" {
