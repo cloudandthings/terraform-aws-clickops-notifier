@@ -224,12 +224,19 @@ def __handle_event(
     if not is_clickops:
         return True
 
+    # AT LEAST ONCE SEMANTICS on delivery stream
+    #
+    # Raising an Exception ensures the Lambda is retried by SQS.
+    #
+    # So only raise an Exception if DeliveryStream delivery fails
+    #
+    # Duplicate (or missed) warm-body notifications are OK
+
     result = delivery_stream.send(trail_event)
     if not result:
         logging.error("Message NOT delivered to delivery stream.")
-    else:
-        logging.info("Message delivered to delivery stream.")
 
+    # Attempt to send messages as well
     messengers = get_messengers()
     for i, messenger in enumerate(messengers):
         result_messenger = messenger.send(
@@ -240,9 +247,6 @@ def __handle_event(
         )
         if not result_messenger:
             logging.error(f"Message NOT sent to webhook {i}.")
-        else:
-            logging.info(f"Message sent to webhook {i}.")
-        result = result and result_messenger
 
     if not result:
         logging.error(f"trail_event={json.dumps(trail_event)}")
