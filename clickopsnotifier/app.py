@@ -6,7 +6,7 @@ import io
 import gzip
 import base64
 import os
-from typing import Tuple
+from typing import Tuple, List
 import logging
 
 from clickops import ClickOpsEventChecker, CloudTrailEvent
@@ -37,32 +37,33 @@ ssm = boto3.client("ssm")
 
 def get_webhook(name) -> str:
     response = ssm.get_parameter(Name=name, WithDecryption=True)
-    return response["Parameter"]["Value"]
+    value = response["Parameter"]["Value"]
+    return value
 
 
-def get_messengers() -> list(Messenger):
-    global MESSENGERS
-    if MESSENGERS is not None:
-        return MESSENGERS
-    MESSENGERS = []
+_MESSENGERS = None
+
+
+def get_messengers() -> List[Messenger]:
+    global _MESSENGERS
+    if _MESSENGERS is not None:
+        return _MESSENGERS
+    _MESSENGERS = []
 
     logging.info("Configuring Slack messengers...")
     for webhook_for_slack in WEBHOOKS_FOR_SLACK:
         webhook = get_webhook(webhook_for_slack)
         messenger = Messenger("slack", webhook)
-        MESSENGERS.append(messenger)
+        _MESSENGERS.append(messenger)
 
     logging.info("Configuring MSTeams messengers...")
     for webhook_for_msteams in WEBHOOKS_FOR_MSTEAMS:
         webhook = get_webhook(webhook_for_msteams)
-        messenger = Messenger("teams", webhook)
-        MESSENGERS.append(messenger)
+        messenger = Messenger("msteams", webhook)
+        _MESSENGERS.append(messenger)
 
-    logging.info(f"There are {len(MESSENGERS)} messengers configured.")
-    return MESSENGERS
-
-
-get_messengers()
+    logging.info(f"There are {len(_MESSENGERS)} messengers configured.")
+    return _MESSENGERS
 
 
 def valid_account(key) -> Tuple[bool, str]:
@@ -139,7 +140,7 @@ def handler_organizational(event, context) -> None:  # noqa: C901
             )
             key_elements = key.split("/")
             if "CloudTrail" not in key_elements:
-                logging.debug("Skipping; CloudTrail is not in the S3 key.")
+                logging.info("Skipping; CloudTrail is not in the S3 key.")
                 continue
 
             is_valid_account, reason = valid_account(key)
@@ -147,6 +148,7 @@ def handler_organizational(event, context) -> None:  # noqa: C901
             if not is_valid_account:
                 logging.info(f"Skipping; Not a valid account. {reason=}.")
                 continue
+            logging.debug(f"Not skipping {key=}.")
 
             response = s3.get_object(Bucket=bucket, Key=key)
             content = response["Body"].read()
@@ -220,7 +222,7 @@ def __handle_event(
     is_clickops, reason = clickops_checker.is_clickops()
 
     if not is_clickops:
-        return False
+        return True
 
     result = delivery_stream.send(trail_event)
     if not result:
@@ -228,7 +230,8 @@ def __handle_event(
     else:
         logging.info("Message delivered to delivery stream.")
 
-    for i, messenger in enumerate(MESSENGERS):
+    messengers = get_messengers()
+    for i, messenger in enumerate(messengers):
         result_messenger = messenger.send(
             cloudtrail_event.user_email,
             trail_event,

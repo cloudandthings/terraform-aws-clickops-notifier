@@ -161,7 +161,7 @@ variable "lambda_memory_size" {
 variable "lambda_log_level" {
   description = "Lambda logging level. One of: `[\"DEBUG\", \"INFO\", \"WARN\", \"ERROR\"]`."
   type        = string
-  default     = "WARN"
+  default     = "INFO"
 
   validation {
     condition = contains([
