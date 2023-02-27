@@ -3,7 +3,7 @@ data "aws_iam_policy_document" "lambda_permissions" {
   statement {
     sid       = "SSMAccess"
     actions   = ["ssm:GetParameter"]
-    resources = [aws_ssm_parameter.slack_webhook.arn]
+    resources = ["arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${var.naming_prefix}/webhooks-*"]
   }
 
   # Organizational deployment
@@ -102,7 +102,8 @@ module "clickops_notifier_lambda" {
   policy_statements        = var.additional_iam_policy_statements
 
   environment_variables = {
-    WEBHOOK_PARAMETER = aws_ssm_parameter.slack_webhook.name
+    WEBHOOKS_FOR_SLACK   = jsonencode(aws_ssm_parameter.webhooks_for_slack[*].name)
+    WEBHOOKS_FOR_MSTEAMS = jsonencode(aws_ssm_parameter.webhooks_for_msteams[*].name)
 
     EXCLUDED_ACCOUNTS = jsonencode(var.excluded_accounts)
     INCLUDED_ACCOUNTS = jsonencode(var.included_accounts)
@@ -111,8 +112,6 @@ module "clickops_notifier_lambda" {
     INCLUDED_USERS = jsonencode(var.included_users)
 
     EXCLUDED_SCOPED_ACTIONS = jsonencode(local.ignored_scoped_events)
-
-    MESSAGE_FORMAT = var.message_format
 
     LOG_LEVEL = var.lambda_log_level
 
@@ -140,12 +139,27 @@ module "clickops_notifier_lambda" {
   depends_on = [aws_s3_object.deployment]
 }
 
-resource "aws_ssm_parameter" "slack_webhook" {
-  name        = "/${var.naming_prefix}/slack-webhook"
-  description = "Incomming webhook for clickops notifications."
+resource "aws_ssm_parameter" "webhooks_for_slack" {
+  count       = length(var.webhooks_for_slack_notifications)
+  name        = "/${var.naming_prefix}/webhooks-for-slack/${count.index}"
+  description = "Webhook #${count.index} for clickops notifications via Slack."
 
   type  = "SecureString"
-  value = var.webhook
+  value = var.webhooks_for_slack_notifications[count.index]
+
+  tags = var.tags
+  lifecycle {
+    ignore_changes = [value, ]
+  }
+}
+
+resource "aws_ssm_parameter" "webhooks_for_msteams" {
+  count       = length(var.webhooks_for_msteams_notifications)
+  name        = "/${var.naming_prefix}/webhooks-for-msteams/${count.index}"
+  description = "Webhook #${count.index} for clickops notifications via MS Teams."
+
+  type  = "SecureString"
+  value = var.webhooks_for_msteams_notifications[count.index]
 
   tags = var.tags
   lifecycle {

@@ -8,7 +8,7 @@ jobs:
     name: 🍱 collect directories
     # Outputs a list of all unique directories
     # that contain *.tf files and do not start with .
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNS_ON }}
     outputs:
       directories: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -25,8 +25,8 @@ jobs:
     needs: collectDirectories
     # For public repos use runs-on: ubuntu-latest
     # For private repos use runs-on: self-hosted
-    runs-on: ubuntu-latest
-    container: bjorncloudandthings/terraform-aws-github:latest
+    runs-on: ${{ vars.RUNS_ON }}
+    container: ${{ vars.CONTAINER }}
     strategy:
       matrix:
         directory: ${{ fromJson(needs.collectDirectories.outputs.directories) }}
