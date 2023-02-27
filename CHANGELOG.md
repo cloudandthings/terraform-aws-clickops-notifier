@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v3.0.0...v4.0.0) (2023-02-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* Rename of s3_X vars to lambda_deployment_X, for clarity. ([#51](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/51))
+
+### Features
+
+* Add `kms_key_id_for_sns_topic` ([502714e](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/502714e080de59457e631ec322e0d8334e0470f6))
+* Add `lambda_log_level` variable ([a2f6d5a](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/a2f6d5a24151e46c2018a7bed5e5f003b8df2736))
+* Additional s3 bucket notification queues ([#49](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/49)) ([e48ade6](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/e48ade6beab24316bcb81d67fb4c67adf0f8472c))
+* For org deployments, use SNS to enable fan-out use cases. ([b68fb7f](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/b68fb7f55c2394cb1052316215ee56b12214a867))
+* Update app logic to use SNS ([cf7464d](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/cf7464dbd2e5280168805b86e17e7af37971fd0c))
+
+
+### Bug Fixes
+
+* Add tags to aws_sqs_queue, aws_ssm_parameter ([817708a](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/817708a39d95f687e1c4f3789a47b647d130c58a))
+* DeliveryStream was causing exceptions when disabled ([740c765](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/740c765eec6a18a39d24a4a06e0c62792851dbcf))
+* Increase default event_batch_size from 10 to 100 ([750fe31](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/750fe3160ffeec14c2d50517a1628e0b5c030963))
+* Remove `additional_s3_bucket_notification_queues` ([c6c9488](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/c6c94889a6878f420e0d12b4c409a924448534d1))
+* Rename of s3_X vars to lambda_deployment_X, for clarity. ([#51](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/51)) ([85856bd](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/85856bd5af9788fddb92abe15b234f7fc37476a4))
+* Truncate Slack notification of event to 3k chars ([2ab3b1b](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/2ab3b1beeda9d71eecfddfda389db601693beb6d))
+* Update lambda builds to latest ([d709560](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/d7095600f8001f935c9193ca4d4a5021edce0e77))
+
 ## [3.0.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v2.1.0...v3.0.0) (2023-02-16)
 
 
