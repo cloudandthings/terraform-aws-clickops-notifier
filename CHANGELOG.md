@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v4.0.0...v4.1.0) (2023-02-27)
+
+
+### Features
+
+* Add `allowed_aws_principals_for_sns_subscribe` ([c86bf9e](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/c86bf9e4e41f0ab85611e34c85604c22d943a97d))
+
 ## [4.0.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v3.0.0...v4.0.0) (2023-02-24)
 
 
