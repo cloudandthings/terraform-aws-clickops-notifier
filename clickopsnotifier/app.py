@@ -16,13 +16,16 @@ from delivery_stream import DeliveryStream
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "WARN")
 logging.getLogger().setLevel(LOG_LEVEL)
 
-WEBHOOK_PARAMETER = os.environ.get("WEBHOOK_PARAMETER", "")
+WEBHOOKS_FOR_SLACK = json.loads(os.environ.get("WEBHOOKS_FOR_SLACK", "[]"))
+WEBHOOKS_FOR_MSTEAMS = json.loads(os.environ.get("WEBHOOKS_FOR_MSTEAMS", "[]"))
+
 EXCLUDED_ACCOUNTS = json.loads(os.environ.get("EXCLUDED_ACCOUNTS", "[]"))
 INCLUDED_ACCOUNTS = json.loads(os.environ.get("INCLUDED_ACCOUNTS", "[]"))
+
 EXCLUDED_USERS = json.loads(os.environ.get("EXCLUDED_USERS", "[]"))
 INCLUDED_USERS = json.loads(os.environ.get("INCLUDED_USERS", "[]"))
+
 EXCLUDED_SCOPED_ACTIONS = json.loads(os.environ.get("EXCLUDED_SCOPED_ACTIONS", "[]"))
-MESSAGE_FORMAT = os.environ.get("MESSAGE_FORMAT", "slack")
 
 FIREHOSE_DELIVERY_STREAM_NAME = os.environ.get("FIREHOSE_DELIVERY_STREAM_NAME")
 if FIREHOSE_DELIVERY_STREAM_NAME == "__NONE__":
@@ -31,16 +34,35 @@ if FIREHOSE_DELIVERY_STREAM_NAME == "__NONE__":
 s3 = boto3.client("s3")
 ssm = boto3.client("ssm")
 
-WEBHOOK_URL = None
+
+def get_webhook(name) -> str:
+    response = ssm.get_parameter(Name=name, WithDecryption=True)
+    return response["Parameter"]["Value"]
 
 
-def get_webhook() -> str:
-    global WEBHOOK_URL
-    if WEBHOOK_URL is None:
-        response = ssm.get_parameter(Name=WEBHOOK_PARAMETER, WithDecryption=True)
-        WEBHOOK_URL = response["Parameter"]["Value"]
+def get_messengers() -> list(Messenger):
+    global MESSENGERS
+    if MESSENGERS is not None:
+        return MESSENGERS
+    MESSENGERS = []
 
-    return WEBHOOK_URL
+    logging.info("Configuring Slack messengers...")
+    for webhook_for_slack in WEBHOOKS_FOR_SLACK:
+        webhook = get_webhook(webhook_for_slack)
+        messenger = Messenger("slack", webhook)
+        MESSENGERS.append(messenger)
+
+    logging.info("Configuring MSTeams messengers...")
+    for webhook_for_msteams in WEBHOOKS_FOR_MSTEAMS:
+        webhook = get_webhook(webhook_for_msteams)
+        messenger = Messenger("teams", webhook)
+        MESSENGERS.append(messenger)
+
+    logging.info(f"There are {len(MESSENGERS)} messengers configured.")
+    return MESSENGERS
+
+
+get_messengers()
 
 
 def valid_account(key) -> Tuple[bool, str]:
@@ -98,10 +120,6 @@ def handler_organizational(event, context) -> None:  # noqa: C901
         raise KeyError("event is None")
     sqs_records = event["Records"]
 
-    webhook_url = get_webhook()
-
-    messenger = Messenger(format=MESSAGE_FORMAT, webhook=webhook_url)
-
     delivery_stream = DeliveryStream(delivery_stream_name=FIREHOSE_DELIVERY_STREAM_NAME)
 
     success = True
@@ -139,7 +157,6 @@ def handler_organizational(event, context) -> None:  # noqa: C901
                 logging.debug(f"{trail_event_json=}")
                 for trail_event in trail_event_json["Records"]:
                     success = success and __handle_event(
-                        messenger=messenger,
                         delivery_stream=delivery_stream,
                         trail_event=trail_event,
                         trail_event_origin=trail_event_origin,
@@ -157,17 +174,11 @@ def handler_standalone(event, context) -> None:
     if event is None:
         raise KeyError("event is None")
 
-    webhook_url = get_webhook()
-
-    messenger = Messenger(format=MESSAGE_FORMAT, webhook=webhook_url)
-
     delivery_stream = DeliveryStream(delivery_stream_name=FIREHOSE_DELIVERY_STREAM_NAME)
 
     event_decoded_compressed = base64.b64decode(event["awslogs"]["data"])
     event_uncompressed = gzip.decompress(event_decoded_compressed)
     event_json = json.loads(event_uncompressed)
-
-    # logging.info(event_uncompressed)
 
     success = True
     for e in event_json["logEvents"]:
@@ -180,7 +191,6 @@ def handler_standalone(event, context) -> None:
         )
 
         success = success and __handle_event(
-            messenger=messenger,
             delivery_stream=delivery_stream,
             trail_event=json.loads(e["message"]),
             trail_event_origin=trail_event_origin,
@@ -195,7 +205,7 @@ def handler_standalone(event, context) -> None:
 
 
 def __handle_event(
-    messenger, delivery_stream, trail_event, trail_event_origin: str, standalone: bool
+    delivery_stream, trail_event, trail_event_origin: str, standalone: bool
 ) -> bool:
     cloudtrail_event = CloudTrailEvent(trail_event)
 
@@ -209,24 +219,29 @@ def __handle_event(
 
     is_clickops, reason = clickops_checker.is_clickops()
 
-    if is_clickops:
-        result1 = messenger.send(
+    if not is_clickops:
+        return False
+
+    result = delivery_stream.send(trail_event)
+    if not result:
+        logging.error("Message NOT delivered to delivery stream.")
+    else:
+        logging.info("Message delivered to delivery stream.")
+
+    for i, messenger in enumerate(MESSENGERS):
+        result_messenger = messenger.send(
             cloudtrail_event.user_email,
             trail_event,
             trail_event_origin=trail_event_origin,
             standalone=standalone,
         )
-        if not result1:
-            logging.error(
-                "Message not sent to webhook.\n\n"
-                f"trail_event={json.dumps(trail_event)}"
-            )
-        result2 = delivery_stream.send(trail_event)
-        if not result2:
-            logging.error(
-                "Message not delivered to delivery stream.\n\n"
-                f"trail_event={json.dumps(trail_event)}"
-            )
-        return result1 and result2
+        if not result_messenger:
+            logging.error(f"Message NOT sent to webhook {i}.")
+        else:
+            logging.info(f"Message sent to webhook {i}.")
+        result = result and result_messenger
 
-    return True
+    if not result:
+        logging.error(f"trail_event={json.dumps(trail_event)}")
+
+    return result

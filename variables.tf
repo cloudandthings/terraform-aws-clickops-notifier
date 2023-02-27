@@ -19,30 +19,22 @@ variable "cloudtrail_bucket_name" {
   default     = ""
 }
 
-variable "webhook" {
-  type        = string
-  description = "The webhook URL for notifications. https://api.slack.com/messaging/webhooks"
+variable "webhooks_for_slack_notifications" {
+  type        = list(string)
+  description = "List of webhook URLs for Slack notifications. https://api.slack.com/messaging/webhooks"
   sensitive   = true
 }
+
+variable "webhooks_for_msteams_notifications" {
+  type        = list(string)
+  description = "List of webhook URLs for MS Teams notifications. https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook?tabs=dotnet"
+  sensitive   = true
+}
+
 
 # -------------------------------------------------------------------------------------
 # Optional Variables
 # -------------------------------------------------------------------------------------
-
-# Application Related Optional Variables
-variable "message_format" {
-  type        = string
-  description = "Where do you want to send this message? slack or msteams"
-  default     = "slack"
-
-  validation {
-    condition = contains([
-      "slack",
-      "msteams"
-    ], var.message_format)
-    error_message = "Invalid message_format provided."
-  }
-}
 
 variable "excluded_accounts" {
   type        = list(string)

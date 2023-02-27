@@ -43,9 +43,11 @@ module "clickops_notifications" {
 
   naming_prefix          = local.naming_prefix
   cloudtrail_bucket_name = aws_s3_bucket.test_bucket.id
-  webhook                = "https://fake.com"
-  message_format         = "slack"
-  tags                   = local.tags
+
+  webhooks_for_slack_notifications   = ["https://fake.com"]
+  webhooks_for_msteams_notifications = ["https://fake.com"]
+
+  tags = local.tags
 
   # Optional
   kms_key_id_for_sns_topic = aws_kms_key.clickops_sns_topic.arn

@@ -58,12 +58,12 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 | <a name="input_lambda_memory_size"></a> [lambda\_memory\_size](#input\_lambda\_memory\_size) | The amount of memory for Lambda to use | `number` | `"128"` | no |
 | <a name="input_lambda_runtime"></a> [lambda\_runtime](#input\_lambda\_runtime) | The lambda runtime to use. One of: `["python3.9", "python3.8", "python3.7"]` | `string` | `"python3.8"` | no |
 | <a name="input_log_retention_in_days"></a> [log\_retention\_in\_days](#input\_log\_retention\_in\_days) | Number of days to keep CloudWatch logs | `number` | `14` | no |
-| <a name="input_message_format"></a> [message\_format](#input\_message\_format) | Where do you want to send this message? slack or msteams | `string` | `"slack"` | no |
 | <a name="input_naming_prefix"></a> [naming\_prefix](#input\_naming\_prefix) | Resources will be prefixed with this | `string` | `"clickops-notifier"` | no |
 | <a name="input_standalone"></a> [standalone](#input\_standalone) | Deploy ClickOps in a standalone account instead of into an entire AWS Organization. Ideal for teams who want to monitor ClickOps in only their accounts where it is not instrumented at an Organizational level. | `bool` | `false` | no |
 | <a name="input_subcription_filter_distribution"></a> [subcription\_filter\_distribution](#input\_subcription\_filter\_distribution) | The method used to distribute log data to the destination. By default log data is grouped by log stream, but the grouping can be set to random for a more even distribution. This property is only applicable when the destination is an Amazon Kinesis stream. Valid values are "Random" and "ByLogStream". | `string` | `"Random"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to add to resources in addition to the default\_tags for the provider | `map(string)` | `{}` | no |
-| <a name="input_webhook"></a> [webhook](#input\_webhook) | The webhook URL for notifications. https://api.slack.com/messaging/webhooks | `string` | n/a | yes |
+| <a name="input_webhooks_for_msteams_notifications"></a> [webhooks\_for\_msteams\_notifications](#input\_webhooks\_for\_msteams\_notifications) | List of webhook URLs for MS Teams notifications. https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook?tabs=dotnet | `list(string)` | n/a | yes |
+| <a name="input_webhooks_for_slack_notifications"></a> [webhooks\_for\_slack\_notifications](#input\_webhooks\_for\_slack\_notifications) | List of webhook URLs for Slack notifications. https://api.slack.com/messaging/webhooks | `list(string)` | n/a | yes |
 
 ----
 ### Modules
@@ -109,12 +109,14 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 | [aws_sns_topic_subscription.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [aws_sqs_queue.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue) | resource |
 | [aws_sqs_queue_policy.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue_policy) | resource |
-| [aws_ssm_parameter.slack_webhook](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.webhooks_for_msteams](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.webhooks_for_slack](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_cloudwatch_log_group.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/cloudwatch_log_group) | data source |
 | [aws_iam_policy_document.bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.lambda_permissions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.sns_topic_policy_bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_s3_bucket.cloudtrail_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/s3_bucket) | data source |
 
 ----

@@ -77,8 +77,8 @@ module "clickops_notifications" {
 
   naming_prefix = local.naming_prefix
 
-  webhook        = "https://fake.com"
-  message_format = "slack"
+  webhooks_for_slack_notifications   = ["https://fake.com"]
+  webhooks_for_msteams_notifications = ["https://fake.com"]
 
   tags = local.tags
 
