@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.0.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v4.1.0...v5.0.0) (2023-02-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* Minimum required Terraform version increased from 0.14 to 0.15
+* Change from single webhook to support many webhooks. ([#58](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/58))
+
+### Features
+
+* Change from single webhook to support many webhooks. ([#58](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/58)) ([1579406](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/15794066d64357ddb40ead3b518d413947d3279a))
+
+
+### Bug Fixes
+
+* Minimum required Terraform version increased from 0.14 to 0.15 ([ecbd182](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/ecbd182b6acf15b002d2513f30e490ab5684f00a))
+* Remove lifecycle rule for ignoring SSM value changes ([a8f1e2b](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/a8f1e2ba15bb5c425d149c9f3dfb93667a352e53))
+* Update deployment packages ([05961ae](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/05961aebb2af7972c337de74f62202f864a4db24))
+
 ## [4.1.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v4.0.0...v4.1.0) (2023-02-27)
 
 
