@@ -148,9 +148,6 @@ resource "aws_ssm_parameter" "webhooks_for_slack" {
   value = var.webhooks_for_slack_notifications[count.index]
 
   tags = var.tags
-  lifecycle {
-    ignore_changes = [value, ]
-  }
 }
 
 resource "aws_ssm_parameter" "webhooks_for_msteams" {
@@ -162,7 +159,4 @@ resource "aws_ssm_parameter" "webhooks_for_msteams" {
   value = var.webhooks_for_msteams_notifications[count.index]
 
   tags = var.tags
-  lifecycle {
-    ignore_changes = [value, ]
-  }
 }
