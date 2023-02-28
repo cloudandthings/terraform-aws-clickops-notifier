@@ -16,8 +16,12 @@ from delivery_stream import DeliveryStream
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "WARN")
 logging.getLogger().setLevel(LOG_LEVEL)
 
-WEBHOOKS_FOR_SLACK = json.loads(os.environ.get("WEBHOOKS_FOR_SLACK", "[]"))
-WEBHOOKS_FOR_MSTEAMS = json.loads(os.environ.get("WEBHOOKS_FOR_MSTEAMS", "[]"))
+PARAMETER_NAMES_FOR_SLACK_WEBHOOKS = json.loads(
+    os.environ.get("PARAMETER_NAMES_FOR_SLACK_WEBHOOKS", "[]")
+)
+PARAMETER_NAMES_FOR_MSTEAMS_WEBHOOKS = json.loads(
+    os.environ.get("PARAMETER_NAMES_FOR_MSTEAMS_WEBHOOKS", "[]")
+)
 
 EXCLUDED_ACCOUNTS = json.loads(os.environ.get("EXCLUDED_ACCOUNTS", "[]"))
 INCLUDED_ACCOUNTS = json.loads(os.environ.get("INCLUDED_ACCOUNTS", "[]"))
@@ -50,7 +54,7 @@ def get_messengers() -> List[Messenger]:
     _MESSENGERS = []
 
     logging.info("Configuring Slack messengers...")
-    for parameter_name in WEBHOOKS_FOR_SLACK:
+    for parameter_name in PARAMETER_NAMES_FOR_SLACK_WEBHOOKS:
         webhook_url = get_webhook_url(parameter_name)
         messenger = Messenger(
             webhook_type="slack",
@@ -60,7 +64,7 @@ def get_messengers() -> List[Messenger]:
         _MESSENGERS.append(messenger)
 
     logging.info("Configuring MSTeams messengers...")
-    for parameter_name in WEBHOOKS_FOR_MSTEAMS:
+    for parameter_name in PARAMETER_NAMES_FOR_MSTEAMS_WEBHOOKS:
         webhook_url = get_webhook_url(parameter_name)
         messenger = Messenger(
             webhook_type="msteams",

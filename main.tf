@@ -102,8 +102,8 @@ module "clickops_notifier_lambda" {
   policy_statements        = var.additional_iam_policy_statements
 
   environment_variables = {
-    WEBHOOKS_FOR_SLACK   = jsonencode(aws_ssm_parameter.webhooks_for_slack[*].name)
-    WEBHOOKS_FOR_MSTEAMS = jsonencode(aws_ssm_parameter.webhooks_for_msteams[*].name)
+    PARAMETER_NAMES_FOR_SLACK_WEBHOOKS   = jsonencode([for p in aws_ssm_parameter.webhooks_for_slack : p.name])
+    PARAMETER_NAMES_FOR_MSTEAMS_WEBHOOKS = jsonencode([for p in aws_ssm_parameter.webhooks_for_msteams : p.name])
 
     EXCLUDED_ACCOUNTS = jsonencode(var.excluded_accounts)
     INCLUDED_ACCOUNTS = jsonencode(var.included_accounts)
