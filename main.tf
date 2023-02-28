@@ -140,29 +140,23 @@ module "clickops_notifier_lambda" {
 }
 
 resource "aws_ssm_parameter" "webhooks_for_slack" {
-  count       = length(var.webhooks_for_slack_notifications)
-  name        = "/${var.naming_prefix}/webhooks-for-slack/${count.index}"
-  description = "Webhook #${count.index} for clickops notifications via Slack."
+  for_each = nonsensitive(toset(keys(var.webhooks_for_slack_notifications)))
 
-  type  = "SecureString"
-  value = var.webhooks_for_slack_notifications[count.index]
+  name        = "/${var.naming_prefix}/webhooks-for-slack/${each.key}"
+  description = "Webhook \"${each.key}\" for clickops notifications via Slack."
+  type        = "SecureString"
+  value       = var.webhooks_for_slack_notifications[each.key]
 
   tags = var.tags
-  lifecycle {
-    ignore_changes = [value, ]
-  }
 }
 
 resource "aws_ssm_parameter" "webhooks_for_msteams" {
-  count       = length(var.webhooks_for_msteams_notifications)
-  name        = "/${var.naming_prefix}/webhooks-for-msteams/${count.index}"
-  description = "Webhook #${count.index} for clickops notifications via MS Teams."
+  for_each = nonsensitive(toset(keys(var.webhooks_for_msteams_notifications)))
 
-  type  = "SecureString"
-  value = var.webhooks_for_msteams_notifications[count.index]
+  name        = "/${var.naming_prefix}/webhooks-for-msteams/${each.key}"
+  description = "Webhook \"${each.key}\" for clickops notifications via MS Teams."
+  type        = "SecureString"
+  value       = var.webhooks_for_msteams_notifications[each.key]
 
   tags = var.tags
-  lifecycle {
-    ignore_changes = [value, ]
-  }
 }

@@ -20,27 +20,17 @@ variable "cloudtrail_bucket_name" {
 }
 
 variable "webhooks_for_slack_notifications" {
-  type        = list(string)
-  description = "List of webhook URLs for Slack notifications. https://api.slack.com/messaging/webhooks"
+  type        = map(string)
+  description = "Map of `custom_name => webhook URL`s for Slack notifications. https://api.slack.com/messaging/webhooks"
   sensitive   = true
-  default     = []
-
-  validation {
-    condition     = length(compact(var.webhooks_for_slack_notifications)) == length(var.webhooks_for_slack_notifications)
-    error_message = "May not contain empty strings."
-  }
+  default     = {}
 }
 
 variable "webhooks_for_msteams_notifications" {
-  type        = list(string)
-  description = "List of webhook URLs for MS Teams notifications. https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook?tabs=dotnet"
+  type        = map(string)
+  description = "Map of `custom_name => webhook URL`s for MS Teams notifications. https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook?tabs=dotnet"
   sensitive   = true
-  default     = []
-
-  validation {
-    condition     = length(compact(var.webhooks_for_msteams_notifications)) == length(var.webhooks_for_msteams_notifications)
-    error_message = "May not contain empty strings."
-  }
+  default     = {}
 }
 
 

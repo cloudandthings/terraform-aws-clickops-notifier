@@ -62,10 +62,10 @@ jobs:
           cd ..
           #
           # Compare length and names of files in Zip.
+          echo "***Comparing deployment package to source code for $DEPLOYMENT"
           # Building in Docker doesn't work, some files are still different.
           [[ -f $DEPLOYMENT ]] || { echo "Deployment file not found."; exit 1; }
           diff \
             <(unzip -vqq $DEPLOYMENT  | awk '{$2=""; $3=""; $4=""; $5=""; $6=""; print}' | sort -k3 -f) \
             <(unzip -vqq ${DEPLOYMENT}_original  | awk '{$2=""; $3=""; $4=""; $5=""; $6=""; print}' | sort -k3 -f)
-          FILES_CHANGED=$?
-          echo FILES_CHANGED=$FILES_CHANGED
+          echo "***Comparison completed. Deployment package is up to date."
