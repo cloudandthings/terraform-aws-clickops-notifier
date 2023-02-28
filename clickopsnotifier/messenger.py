@@ -1,19 +1,32 @@
 import json
 import requests
 import logging
+import re
+
+WEBHOOK_NAME_REGEXP = r".*webhooks-for-.*?\/(.*)"
 
 
 class Messenger:
-    def __init__(self, format: str, webhook: str) -> None:
-        self.webhook = webhook
-        self.format = format
+    def __init__(
+        self, webhook_type: str, webhook_url: str, parameter_name: str
+    ) -> None:
+        self.webhook_url = webhook_url
+        if self.webhook_url is None:
+            raise ValueError("webhook_url cannot be None")
 
-        if format == "slack":
+        self.webhook_type = webhook_type
+        if webhook_type == "slack":
             self.send = self.__send_slack_message
-        elif format == "msteams":
+        elif webhook_type == "msteams":
             self.send = self.__send_msteams_message
         else:
-            raise ValueError("Invalid format, must be ['slack', 'msteams']")
+            raise ValueError("Invalid webhook_type, must be ['slack', 'msteams']")
+
+        m = re.match(WEBHOOK_NAME_REGEXP, parameter_name)
+        self.webhook_name = m.group(1)
+
+    def __str__(self) -> str:
+        return self.webhook_name
 
     def __send_msteams_message(
         self, user, trail_event, trail_event_origin: str, standalone: str
@@ -47,10 +60,12 @@ class Messenger:
                 }
             ],
         }
-        response = requests.post(self.webhook, json=payload)
+        response = requests.post(self.webhook_url, json=payload)
         if response.status_code != 200:
-            logging.info(f"json payload:\n\n{json.dumps(payload)}")
-            logging.error(f"response.content={response.content}")
+            logging.info(f"{self.webhook_name} json payload:\n\n{json.dumps(payload)}")
+            logging.error(
+                f"{self.webhook_name} response.content:\n\n{response.content}"
+            )
             return False
         return True
 
@@ -122,9 +137,11 @@ class Messenger:
                 },
             ]
         }
-        response = requests.post(self.webhook, json=payload)
+        response = requests.post(self.webhook_url, json=payload)
         if response.status_code != 200:
-            logging.info(f"json payload:\n\n{json.dumps(payload)}")
-            logging.error(f"response.content={response.content}")
+            logging.info(f"{self.webhook_name} json payload:\n\n{json.dumps(payload)}")
+            logging.error(
+                f"{self.webhook_name} response.content:\n\n{response.content}"
+            )
             return False
         return True

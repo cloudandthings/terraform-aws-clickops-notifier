@@ -35,10 +35,9 @@ s3 = boto3.client("s3")
 ssm = boto3.client("ssm")
 
 
-def get_webhook(name) -> str:
-    response = ssm.get_parameter(Name=name, WithDecryption=True)
-    value = response["Parameter"]["Value"]
-    return value
+def get_webhook_url(parameter_name) -> str:
+    response = ssm.get_parameter(Name=parameter_name, WithDecryption=True)
+    return response["Parameter"]["Value"]
 
 
 _MESSENGERS = None
@@ -51,15 +50,23 @@ def get_messengers() -> List[Messenger]:
     _MESSENGERS = []
 
     logging.info("Configuring Slack messengers...")
-    for webhook_for_slack in WEBHOOKS_FOR_SLACK:
-        webhook = get_webhook(webhook_for_slack)
-        messenger = Messenger("slack", webhook)
+    for parameter_name in WEBHOOKS_FOR_SLACK:
+        webhook_url = get_webhook_url(parameter_name)
+        messenger = Messenger(
+            webhook_type="slack",
+            webhook_url=webhook_url,
+            parameter_name=parameter_name,
+        )
         _MESSENGERS.append(messenger)
 
     logging.info("Configuring MSTeams messengers...")
-    for webhook_for_msteams in WEBHOOKS_FOR_MSTEAMS:
-        webhook = get_webhook(webhook_for_msteams)
-        messenger = Messenger("msteams", webhook)
+    for parameter_name in WEBHOOKS_FOR_MSTEAMS:
+        webhook_url = get_webhook_url(parameter_name)
+        messenger = Messenger(
+            webhook_type="msteams",
+            webhook_url=webhook_url,
+            parameter_name=parameter_name,
+        )
         _MESSENGERS.append(messenger)
 
     logging.info(f"There are {len(_MESSENGERS)} messengers configured.")
@@ -238,7 +245,7 @@ def __handle_event(
 
     # Attempt to send messages as well
     messengers = get_messengers()
-    for i, messenger in enumerate(messengers):
+    for messenger in messengers:
         result_messenger = messenger.send(
             cloudtrail_event.user_email,
             trail_event,
@@ -246,7 +253,7 @@ def __handle_event(
             standalone=standalone,
         )
         if not result_messenger:
-            logging.error(f"Message NOT sent to webhook {i}.")
+            logging.error(f'Message NOT sent to webhook "{messenger}".')
 
     if not result:
         logging.error(f"trail_event={json.dumps(trail_event)}")
