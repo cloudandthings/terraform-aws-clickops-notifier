@@ -3,7 +3,7 @@
 ## main.tf
 ```hcl
 terraform {
-  required_version = ">= 0.14.0"
+  required_version = ">= 0.15.0"
 
   required_providers {
     aws = {
@@ -81,8 +81,12 @@ module "clickops_notifications" {
 
   naming_prefix = local.naming_prefix
 
-  webhooks_for_slack_notifications   = ["https://fake.com"]
-  webhooks_for_msteams_notifications = ["https://fake.com"]
+  webhooks_for_slack_notifications = {
+    my-first-notification : "https://fake.com"
+  }
+  webhooks_for_msteams_notifications = {
+    my-second-notification : "https://fake.com"
+  }
 
   tags = local.tags
 
@@ -270,7 +274,7 @@ No outputs.
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.15.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.9 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.4 |
 

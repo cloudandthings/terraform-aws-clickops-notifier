@@ -140,23 +140,23 @@ module "clickops_notifier_lambda" {
 }
 
 resource "aws_ssm_parameter" "webhooks_for_slack" {
-  for_each = var.webhooks_for_slack_notifications
+  for_each = nonsensitive(toset(keys(var.webhooks_for_slack_notifications)))
 
   name        = "/${var.naming_prefix}/webhooks-for-slack/${each.key}"
   description = "Webhook \"${each.key}\" for clickops notifications via Slack."
   type        = "SecureString"
-  value       = each.value
+  value       = var.webhooks_for_slack_notifications[each.key]
 
   tags = var.tags
 }
 
 resource "aws_ssm_parameter" "webhooks_for_msteams" {
-  for_each = var.webhooks_for_msteams_notifications
+  for_each = nonsensitive(toset(keys(var.webhooks_for_msteams_notifications)))
 
   name        = "/${var.naming_prefix}/webhooks-for-msteams/${each.key}"
   description = "Webhook \"${each.key}\" for clickops notifications via MS Teams."
   type        = "SecureString"
-  value       = each.value
+  value       = var.webhooks_for_msteams_notifications[each.key]
 
   tags = var.tags
 }

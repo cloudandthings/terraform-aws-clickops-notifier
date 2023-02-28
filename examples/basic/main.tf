@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 0.14.0"
+  required_version = ">= 0.15.0"
 
   required_providers {
     aws = {
@@ -40,8 +40,12 @@ module "clickops_notifications" {
   naming_prefix          = local.naming_prefix
   cloudtrail_bucket_name = aws_s3_bucket.test_bucket.id
 
-  webhooks_for_slack_notifications   = ["https://fake.com"]
-  webhooks_for_msteams_notifications = ["https://fake.com"]
+  webhooks_for_slack_notifications = {
+    my-first-notification : "https://fake.com"
+  }
+  webhooks_for_msteams_notifications = {
+    my-second-notification : "https://fake.com"
+  }
 
   tags = local.tags
 
