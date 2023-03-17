@@ -45,5 +45,9 @@ locals {
     "kms.amazonaws.com:RetireGrant",
 
     "trustedadvisor.amazonaws.com:RefreshCheck",
+
+    # Must CreateMultipartUpload before uploading any parts.
+    "s3.amazonaws.com:UploadPart",
+    "s3.amazonaws.com:UploadPartCopy"
   ]
 }
