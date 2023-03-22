@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.0.1](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.0.0...v5.0.1) (2023-03-22)
+
+
+### Bug Fixes
+
+* Remove s3 UploadPart and UploadPartCopy from notifications ([#61](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/61)) ([74d4fbf](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/74d4fbf6d5360cd0e1eaf4b247ce9e5e2ea66644))
+
 ## [5.0.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v4.1.0...v5.0.0) (2023-02-28)
 
 
