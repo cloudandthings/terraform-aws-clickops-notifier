@@ -198,9 +198,9 @@ def handler_standalone(event, context) -> None:
         trail_event_origin = (
             event_json["logGroup"]
             + ":"
-            + {event_json["logStream"]}
+            + event_json["logStream"]
             + "\n"
-            + {event_json["subscriptionFilters"]}
+            + ":".join(event_json["subscriptionFilters"])
         )
 
         success = success and __handle_event(
