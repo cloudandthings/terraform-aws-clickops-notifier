@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.0.2](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.0.1...v5.0.2) (2023-04-18)
+
+
+### Bug Fixes
+
+* Ensure trail_event_origin is constructed from strings ([4b6fb20](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/4b6fb2092a7cae149bc269df1fd8768d296c6a9f))
+
 ## [5.0.1](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.0.0...v5.0.1) (2023-03-22)
 
 
