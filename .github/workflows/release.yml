@@ -20,7 +20,7 @@ jobs:
   release:
     # For public repos use runs-on: ubuntu-latest
     # For private repos use runs-on: self-hosted
-    runs-on: ${{ vars.RUNS_ON }}
+    runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release-please.outputs.release_created }}
       tag_name: ${{ steps.release-please.outputs.tag_name }}
@@ -41,8 +41,8 @@ jobs:
   release-assets:
     needs: [release]
     if: needs.release.outputs.release_created || github.event_name == 'workflow_dispatch'
-    runs-on: ${{ vars.RUNS_ON }}
-    container: ${{ vars.CONTAINER }}
+    runs-on: ubuntu-latest
+    container: bjorncloudandthings/terraform-aws-github:latest
     steps:
       - uses: actions/checkout@v3
         with:

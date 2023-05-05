@@ -10,7 +10,7 @@ on:
 jobs:
   main:
     name: 👀 Validate PR title
-    runs-on: ${{ vars.RUNS_ON }}
+    runs-on: ubuntu-latest
     steps:
       # Please look up the latest version from
       # https://github.com/amannn/action-semantic-pull-request/releases

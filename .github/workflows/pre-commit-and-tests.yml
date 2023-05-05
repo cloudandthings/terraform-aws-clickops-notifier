@@ -29,8 +29,8 @@ jobs:
     name: 💍 pre-commit
     # For public repos use runs-on: ubuntu-latest
     # For private repos use runs-on: self-hosted
-    runs-on: ${{ vars.RUNS_ON }}
-    container: ${{ vars.CONTAINER }}
+    runs-on: ubuntu-latest
+    container: bjorncloudandthings/terraform-aws-github:latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -69,8 +69,8 @@ jobs:
     name: ✅ tests
     # For public repos use runs-on: ubuntu-latest
     # For private repos use runs-on: self-hosted
-    runs-on: ${{ vars.RUNS_ON }}
-    container: ${{ vars.CONTAINER }}
+    runs-on: ubuntu-latest
+    container: bjorncloudandthings/terraform-aws-github:latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4

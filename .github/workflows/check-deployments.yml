@@ -21,7 +21,7 @@ jobs:
     name: 🍱 collect deployments
     # For public repos use runs-on: ubuntu-latest
     # For private repos use runs-on: self-hosted
-    runs-on: ${{ vars.RUNS_ON }}
+    runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -41,7 +41,7 @@ jobs:
     name: 🔍 check deployment
     # For public repos use runs-on: ubuntu-latest
     # For private repos use runs-on: self-hosted
-    runs-on: ${{ vars.RUNS_ON }}
+    runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.collect.outputs.matrix) }}
     steps:
