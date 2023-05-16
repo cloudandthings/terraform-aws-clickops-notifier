@@ -48,6 +48,8 @@ locals {
 
     # Must CreateMultipartUpload before uploading any parts.
     "s3.amazonaws.com:UploadPart",
-    "s3.amazonaws.com:UploadPartCopy"
+    "s3.amazonaws.com:UploadPartCopy",
+
+    "route53domains:TransferDomain",
   ]
 }
