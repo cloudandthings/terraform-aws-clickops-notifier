@@ -51,7 +51,7 @@ locals {
     "s3.amazonaws.com:UploadPartCopy",
 
     "route53domains:TransferDomain",
-    
+
     "support.amazonaws.com:AddAttachmentsToSet",
     "support.amazonaws.com:AddCommunicationToCase",
     "support.amazonaws.com:CreateCase",
@@ -61,7 +61,7 @@ locals {
     "support.amazonaws.com:RateCaseCommunication",
     "support.amazonaws.com:RefreshTrustedAdvisorCheck",
     "support.amazonaws.com:ResolveCase",
-    
+
     "grafana.amazonaws.com:login-auth.sso",
   ]
 }
