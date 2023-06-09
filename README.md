@@ -172,7 +172,21 @@ locals {
 
     # Must CreateMultipartUpload before uploading any parts.
     "s3.amazonaws.com:UploadPart",
-    "s3.amazonaws.com:UploadPartCopy"
+    "s3.amazonaws.com:UploadPartCopy",
+
+    "route53domains:TransferDomain",
+
+    "support.amazonaws.com:AddAttachmentsToSet",
+    "support.amazonaws.com:AddCommunicationToCase",
+    "support.amazonaws.com:CreateCase",
+    "support.amazonaws.com:InitiateCallForCase",
+    "support.amazonaws.com:InitiateChatForCase",
+    "support.amazonaws.com:PutCaseAttributes",
+    "support.amazonaws.com:RateCaseCommunication",
+    "support.amazonaws.com:RefreshTrustedAdvisorCheck",
+    "support.amazonaws.com:ResolveCase",
+
+    "grafana.amazonaws.com:login-auth.sso",
   ]
 }
 ```
