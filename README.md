@@ -186,7 +186,7 @@ locals {
     "support.amazonaws.com:RefreshTrustedAdvisorCheck",
     "support.amazonaws.com:ResolveCase",
 
-    "grafana.amazonaws.com:login-auth.sso",
+    "grafana.amazonaws.com:login_auth_sso",
   ]
 }
 ```
