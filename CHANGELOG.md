@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.0.4](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.0.3...v5.0.4) (2023-08-23)
+
+
+### Bug Fixes
+
+* grafana exclusion ([#73](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/73)) ([0330f80](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/0330f808ebabf80d5598f54e0baea4c729aaa2dc))
+
 ## [5.0.3](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.0.2...v5.0.3) (2023-06-09)
 
 
