@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "lambda_permissions" {
     content {
       sid       = "S3AccessBucket"
       actions   = ["s3:ListBucket"]
-      resources = [data.aws_s3_bucket.cloudtrail_bucket[0].arn]
+      resources = ["arn:aws:s3:::${var.cloudtrail_bucket_name}"]
     }
   }
 
@@ -21,7 +21,7 @@ data "aws_iam_policy_document" "lambda_permissions" {
     content {
       sid       = "S3AccessBucketObject"
       actions   = ["s3:GetObject"]
-      resources = ["${data.aws_s3_bucket.cloudtrail_bucket[0].arn}/*"]
+      resources = ["arn:aws:s3:::${var.cloudtrail_bucket_name}/*"]
     }
   }
 
