@@ -9,19 +9,10 @@
 # Ref: https://aws.amazon.com/blogs/compute/fanout-s3-event-notifications-to-multiple-endpoints/
 
 #--------------------------------------------------------------------------------------
-# aws_s3_bucket
-#--------------------------------------------------------------------------------------
-data "aws_s3_bucket" "cloudtrail_bucket" {
-  count = var.standalone ? 0 : 1
-
-  bucket = var.cloudtrail_bucket_name
-}
-
-#--------------------------------------------------------------------------------------
 # aws_sns_topic
 #--------------------------------------------------------------------------------------
 resource "aws_sns_topic" "bucket_notifications" {
-  count = var.standalone ? 0 : 1
+  count = var.standalone || var.cloudtrail_bucket_notifications_sns_arn != null ? 0 : 1
 
   name = var.naming_prefix
   # Cannot use AWS managed KMS key with S3 bucket notifications
@@ -38,13 +29,13 @@ locals {
   }
 }
 data "aws_iam_policy_document" "sns_topic_policy_bucket_notifications" {
-  count = var.standalone ? 0 : 1
+  count = var.standalone || var.cloudtrail_bucket_notifications_sns_arn != null ? 0 : 1
 
   statement {
     sid       = "AllowS3BucketNotificationToSNSPublish"
     actions   = ["SNS:Publish"]
     effect    = "Allow"
-    resources = [aws_sns_topic.bucket_notifications[0].arn]
+    resources = [try(aws_sns_topic.bucket_notifications[0].arn, var.cloudtrail_bucket_notifications_sns_arn)]
     principals {
       type        = "Service"
       identifiers = ["s3.amazonaws.com"]
@@ -52,7 +43,7 @@ data "aws_iam_policy_document" "sns_topic_policy_bucket_notifications" {
     condition {
       test     = "ArnEquals"
       variable = "aws:SourceArn"
-      values   = [data.aws_s3_bucket.cloudtrail_bucket[0].arn]
+      values   = ["arn:aws:s3:::${var.cloudtrail_bucket_name}"]
     }
     condition {
       test     = "StringEquals"
@@ -61,13 +52,13 @@ data "aws_iam_policy_document" "sns_topic_policy_bucket_notifications" {
     }
   }
   dynamic "statement" {
-    for_each = !var.standalone ? local.allowed_aws_principals_for_sns_subscribe : {}
+    for_each = var.standalone || var.cloudtrail_bucket_notifications_sns_arn != null ? {} : local.allowed_aws_principals_for_sns_subscribe
 
     content {
       sid       = "AllowAWSPrincipalToSNSSubscribe${statement.key}"
       actions   = ["sns:Subscribe"]
       effect    = "Allow"
-      resources = [aws_sns_topic.bucket_notifications[0].arn]
+      resources = [try(aws_sns_topic.bucket_notifications[0].arn, var.cloudtrail_bucket_notifications_sns_arn)]
       principals {
         type        = "AWS"
         identifiers = [statement.value]
@@ -77,9 +68,9 @@ data "aws_iam_policy_document" "sns_topic_policy_bucket_notifications" {
 }
 
 resource "aws_sns_topic_policy" "bucket_notifications" {
-  count = var.standalone ? 0 : 1
+  count = var.standalone || var.cloudtrail_bucket_notifications_sns_arn != null ? 0 : 1
 
-  arn    = aws_sns_topic.bucket_notifications[0].arn
+  arn    = try(aws_sns_topic.bucket_notifications[0].arn, var.cloudtrail_bucket_notifications_sns_arn)
   policy = data.aws_iam_policy_document.sns_topic_policy_bucket_notifications[0].json
 
 }
@@ -88,12 +79,12 @@ resource "aws_sns_topic_policy" "bucket_notifications" {
 # aws_s3_bucket_notification
 #--------------------------------------------------------------------------------------
 resource "aws_s3_bucket_notification" "bucket_notification" {
-  count = var.standalone ? 0 : 1
+  count = var.standalone || var.cloudtrail_bucket_notifications_sns_arn != null ? 0 : 1
 
-  bucket = data.aws_s3_bucket.cloudtrail_bucket[0].id
+  bucket = var.cloudtrail_bucket_name
 
   topic {
-    topic_arn     = aws_sns_topic.bucket_notifications[0].arn
+    topic_arn     = try(aws_sns_topic.bucket_notifications[0].arn, var.cloudtrail_bucket_notifications_sns_arn)
     events        = ["s3:ObjectCreated:*"]
     filter_suffix = ".json.gz"
   }
@@ -129,7 +120,7 @@ data "aws_iam_policy_document" "bucket_notifications" {
     condition {
       test     = "ArnEquals"
       variable = "aws:SourceArn"
-      values   = [aws_sns_topic.bucket_notifications[0].arn]
+      values   = [try(aws_sns_topic.bucket_notifications[0].arn, var.cloudtrail_bucket_notifications_sns_arn)]
     }
   }
 }
@@ -147,7 +138,7 @@ resource "aws_sqs_queue_policy" "bucket_notifications" {
 resource "aws_sns_topic_subscription" "bucket_notifications" {
   count = var.standalone ? 0 : 1
 
-  topic_arn = aws_sns_topic.bucket_notifications[0].arn
+  topic_arn = try(aws_sns_topic.bucket_notifications[0].arn, var.cloudtrail_bucket_notifications_sns_arn)
   protocol  = "sqs"
   endpoint  = aws_sqs_queue.bucket_notifications[0].arn
 }

@@ -37,6 +37,7 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 | <a name="input_additional_iam_policy_statements"></a> [additional\_iam\_policy\_statements](#input\_additional\_iam\_policy\_statements) | Map of dynamic policy statements to attach to Lambda Function role | `any` | `{}` | no |
 | <a name="input_allowed_aws_principals_for_sns_subscribe"></a> [allowed\_aws\_principals\_for\_sns\_subscribe](#input\_allowed\_aws\_principals\_for\_sns\_subscribe) | List of AWS principals allowed to subscribe to the SNS topic (only applicable to org deployments). | `list(string)` | `[]` | no |
 | <a name="input_cloudtrail_bucket_name"></a> [cloudtrail\_bucket\_name](#input\_cloudtrail\_bucket\_name) | Bucket containing the Cloudtrail logs that you want to process. ControlTower bucket name follows this naming convention `aws-controltower-logs-{{account_id}}-{{region}}` | `string` | `""` | no |
+| <a name="input_cloudtrail_bucket_notifications_sns_arn"></a> [cloudtrail\_bucket\_notifications\_sns\_arn](#input\_cloudtrail\_bucket\_notifications\_sns\_arn) | SNS topic ARN for bucket notifications. If not provided, a new SNS topic will be created along with the bucket notifications configuration. | `string` | `null` | no |
 | <a name="input_cloudtrail_log_group"></a> [cloudtrail\_log\_group](#input\_cloudtrail\_log\_group) | CloudWatch Log group for CloudTrail events. | `string` | `""` | no |
 | <a name="input_create_iam_role"></a> [create\_iam\_role](#input\_create\_iam\_role) | Determines whether a an IAM role is created or to use an existing IAM role | `bool` | `true` | no |
 | <a name="input_event_batch_size"></a> [event\_batch\_size](#input\_event\_batch\_size) | Batch events into chunks of `event_batch_size` | `number` | `100` | no |
@@ -117,7 +118,6 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 | [aws_iam_policy_document.lambda_permissions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.sns_topic_policy_bucket_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_s3_bucket.cloudtrail_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/s3_bucket) | data source |
 
 ----
 ### Default excluded scoped actions

@@ -89,6 +89,12 @@ variable "naming_prefix" {
   default     = "clickops-notifier"
 }
 
+variable "cloudtrail_bucket_notifications_sns_arn" {
+  type        = string
+  description = "SNS topic ARN for bucket notifications. If not provided, a new SNS topic will be created along with the bucket notifications configuration."
+  default     = null
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags to add to resources in addition to the default_tags for the provider"
