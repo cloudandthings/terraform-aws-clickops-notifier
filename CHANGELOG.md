@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.1.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.0.4...v5.1.0) (2024-01-08)
+
+
+### Features
+
+* add dependabot ([168085a](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/168085a0999aabfc595aaa38ebbcf3f4c865d128))
+* Allow using a topic from outside of the module ([#77](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/77)) ([2ec4c5d](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/2ec4c5dfff26f5afdd9895714316eb86c8696ba5))
+
 ## [5.0.4](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.0.3...v5.0.4) (2023-08-23)
 
 
