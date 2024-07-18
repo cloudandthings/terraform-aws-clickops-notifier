@@ -12,7 +12,7 @@ jobs:
     outputs:
       directories: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: set-matrix
         run: |
           DIRS=$(find . -type f -name '*.tf' -not -path '**/.*' | sed -r 's|/[^/]+$||' | sort | uniq)
@@ -32,7 +32,7 @@ jobs:
         directory: ${{ fromJson(needs.collectDirectories.outputs.directories) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get Terraform min/max versions
         id: minMax

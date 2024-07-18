@@ -25,7 +25,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: set-matrix
         run: |
           MATRIX=$(cat build_targets.json | jq -c)
@@ -45,7 +45,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.collect.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # To test whether the deployment package is up to date,
       # we only check the application code (excluding dependencies).
