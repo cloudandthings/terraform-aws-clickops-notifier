@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.2.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.1.0...v5.2.0) (2024-07-18)
+
+
+### Features
+
+* allow dependabot to update gha ([d0cb6e6](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/d0cb6e6c4ec2989cf1ca6f5f05287c9dc31333bb))
+* allow dependabot to update gha ([d0cb6e6](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/d0cb6e6c4ec2989cf1ca6f5f05287c9dc31333bb))
+* allow dependabot to update gha ([6b033f0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/6b033f02b31b7879cc5ffd193ac160a68cc12c51))
+
 ## [5.1.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.0.4...v5.1.0) (2024-01-08)
 
 
