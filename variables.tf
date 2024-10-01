@@ -147,14 +147,14 @@ variable "lambda_deployment_upload_to_s3_enabled" {
 
 variable "lambda_runtime" {
   type        = string
-  description = "The lambda runtime to use. One of: `[\"python3.9\", \"python3.8\", \"python3.7\"]`"
-  default     = "python3.8"
+  description = "The lambda runtime to use. One of: `[\"python3.9\", \"python3.8\", \"python3.11\"]`"
+  default     = "python3.11"
 
   validation {
     condition = contains([
       "python3.9",
       "python3.8",
-      "python3.7"
+      "python3.11"
     ], var.lambda_runtime)
     error_message = "Invalid lambda_runtime provided."
   }
