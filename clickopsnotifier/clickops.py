@@ -16,16 +16,34 @@ class CloudTrailEvent:
 
     @staticmethod
     def __user_email(event) -> str:
-        if "userIdentity" in event:
-            match = re.search(
-                r"[\w.+-]+@[\w-]+\.[\w.-]+", json.dumps(event["userIdentity"])
-            )
-            if match is None:
-                return "Unknown"
-            else:
-                return match.group(0)
-        else:
+        if "userIdentity" not in event:
             return "Unknown"
+            
+        user_identity = event["userIdentity"]
+        
+        # Try to get email from principalId if it exists
+        if "principalId" in user_identity:
+            # Handle cases like "AROAXK4KVD27BINQTHSKU:paul@cloudandthings.io"
+            parts = user_identity["principalId"].split(":")
+            if len(parts) > 1:
+                return parts[1]
+        
+        # Try to get email from userName if it exists
+        if "userName" in user_identity:
+            return user_identity["userName"]
+            
+        # Try to get email from arn if it exists
+        if "arn" in user_identity:
+            match = re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", user_identity["arn"])
+            if match:
+                return match.group(0)
+                
+        # Try to get email from the entire userIdentity object
+        match = re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", json.dumps(user_identity))
+        if match:
+            return match.group(0)
+            
+        return "Unknown"
 
     @staticmethod
     def __readonly_event(event) -> bool:
