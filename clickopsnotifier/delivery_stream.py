@@ -16,13 +16,12 @@ class DeliveryStream:
 
     def __init__(self, delivery_stream_name):
         self.delivery_stream_name = delivery_stream_name
+        self.event_buffer = []
 
         if self.delivery_stream_name is None:
             self.client = FakeClient()
         else:
             self.client = boto3.client("firehose")
-
-    event_buffer = []
 
     def _flush(self) -> bool:
         if len(self.event_buffer) == 0:

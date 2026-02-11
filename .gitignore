@@ -56,3 +56,4 @@ test.auto.tfvars*
 __pycache__
 .venv
 .pytest_cache
+.claude/settings.local.json
