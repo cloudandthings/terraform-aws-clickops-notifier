@@ -147,16 +147,17 @@ variable "lambda_deployment_upload_to_s3_enabled" {
 
 variable "lambda_runtime" {
   type        = string
-  description = "The lambda runtime to use. One of: `[\"python3.9\", \"python3.8\", \"python3.11\"]`"
-  default     = "python3.11"
+  description = "The lambda runtime to use. One of: `[\"python3.10\", \"python3.11\", \"python3.12\", \"python3.13\"]`. Note: python3.8 and python3.9 are deprecated and no longer supported by AWS Lambda."
+  default     = "python3.13"
 
   validation {
     condition = contains([
-      "python3.9",
-      "python3.8",
-      "python3.11"
+      "python3.10",
+      "python3.11",
+      "python3.12",
+      "python3.13"
     ], var.lambda_runtime)
-    error_message = "Invalid lambda_runtime provided."
+    error_message = "Invalid lambda_runtime provided. Supported runtimes: python3.10, python3.11, python3.12, python3.13. Note: python3.8 and python3.9 are deprecated."
   }
 }
 
