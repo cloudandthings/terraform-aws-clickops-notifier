@@ -51,9 +51,14 @@ class TestUserEmailExtraction:
         assert CloudTrailEvent(event).user_email == "admin-role"
 
     def test_arn_with_email(self):
+        arn = (
+            "arn:aws:sts::123456789012:"
+            "assumed-role/AWSReservedSSO_Admin/"
+            "paul@cloudandthings.io"
+        )
         event = _make_event(
             {
-                "arn": "arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_Admin/paul@cloudandthings.io",
+                "arn": arn,
             }
         )
         assert CloudTrailEvent(event).user_email == "paul@cloudandthings.io"
@@ -84,11 +89,16 @@ class TestUserEmailExtraction:
         assert CloudTrailEvent(event).user_email == "paul@cloudandthings.io"
 
     def test_principal_id_non_email_username_non_email_falls_to_arn(self):
+        arn = (
+            "arn:aws:sts::123456789012:"
+            "assumed-role/AWSReservedSSO_Admin/"
+            "paul@cloudandthings.io"
+        )
         event = _make_event(
             {
                 "principalId": "AROAXK4KVD27BINQTHSKU:my-session",
                 "userName": "admin-role",
-                "arn": "arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_Admin/paul@cloudandthings.io",
+                "arn": arn,
             }
         )
         assert CloudTrailEvent(event).user_email == "paul@cloudandthings.io"
