@@ -33,13 +33,19 @@ class CloudTrailEvent:
             parts = user_identity["principalId"].split(":")
             if len(parts) > 1 and CloudTrailEvent.EMAIL_RE.fullmatch(parts[1]):
                 return parts[1]
-            logger.debug("principalId '%s' did not contain an email", user_identity["principalId"])
+            logger.debug(
+                "principalId '%s' did not contain an email",
+                user_identity["principalId"],
+            )
 
         # Try to get email from userName if it exists
         if "userName" in user_identity:
             if CloudTrailEvent.EMAIL_RE.fullmatch(user_identity["userName"]):
                 return user_identity["userName"]
-            logger.debug("userName '%s' is not an email, will try other fields", user_identity["userName"])
+            logger.debug(
+                "userName '%s' is not an email, will try other fields",
+                user_identity["userName"],
+            )
 
         # Try to get email from arn if it exists
         if "arn" in user_identity:
@@ -56,7 +62,10 @@ class CloudTrailEvent:
 
         # Fall back to userName if available, even if not an email
         if "userName" in user_identity:
-            logger.debug("No email found, falling back to non-email userName '%s'", user_identity["userName"])
+            logger.debug(
+                "No email found, falling back to non-email userName '%s'",
+                user_identity["userName"],
+            )
             return user_identity["userName"]
 
         logger.debug("No email or userName found in userIdentity, returning Unknown")
