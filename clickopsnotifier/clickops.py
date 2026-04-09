@@ -14,6 +14,8 @@ class CloudTrailEvent:
         self.user_email = self.__user_email(event)
         self.console_session = self.__console_session_event(event)
 
+    EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
+
     @staticmethod
     def __user_email(event) -> str:
         if "userIdentity" not in event:
@@ -22,24 +24,25 @@ class CloudTrailEvent:
         user_identity = event["userIdentity"]
 
         # Try to get email from principalId if it exists
+        # e.g. "AROAXK4KVD27BINQTHSKU:paul@cloudandthings.io"
         if "principalId" in user_identity:
-            # Handle cases like "AROAXK4KVD27BINQTHSKU:paul@cloudandthings.io"
             parts = user_identity["principalId"].split(":")
-            if len(parts) > 1:
+            if len(parts) > 1 and CloudTrailEvent.EMAIL_RE.fullmatch(parts[1]):
                 return parts[1]
 
         # Try to get email from userName if it exists
         if "userName" in user_identity:
-            return user_identity["userName"]
+            if CloudTrailEvent.EMAIL_RE.fullmatch(user_identity["userName"]):
+                return user_identity["userName"]
 
         # Try to get email from arn if it exists
         if "arn" in user_identity:
-            match = re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", user_identity["arn"])
+            match = CloudTrailEvent.EMAIL_RE.search(user_identity["arn"])
             if match:
                 return match.group(0)
 
         # Try to get email from the entire userIdentity object
-        match = re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", json.dumps(user_identity))
+        match = CloudTrailEvent.EMAIL_RE.search(json.dumps(user_identity))
         if match:
             return match.group(0)
 
