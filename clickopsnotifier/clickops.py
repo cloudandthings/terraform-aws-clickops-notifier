@@ -1,6 +1,9 @@
 import re
 import json
+import logging
 from typing import Tuple, List
+
+logger = logging.getLogger(__name__)
 
 
 class CloudTrailEvent:
@@ -19,6 +22,7 @@ class CloudTrailEvent:
     @staticmethod
     def __user_email(event) -> str:
         if "userIdentity" not in event:
+            logger.debug("No userIdentity in event, returning Unknown")
             return "Unknown"
 
         user_identity = event["userIdentity"]
@@ -29,23 +33,33 @@ class CloudTrailEvent:
             parts = user_identity["principalId"].split(":")
             if len(parts) > 1 and CloudTrailEvent.EMAIL_RE.fullmatch(parts[1]):
                 return parts[1]
+            logger.debug("principalId '%s' did not contain an email", user_identity["principalId"])
 
         # Try to get email from userName if it exists
         if "userName" in user_identity:
             if CloudTrailEvent.EMAIL_RE.fullmatch(user_identity["userName"]):
                 return user_identity["userName"]
+            logger.debug("userName '%s' is not an email, will try other fields", user_identity["userName"])
 
         # Try to get email from arn if it exists
         if "arn" in user_identity:
             match = CloudTrailEvent.EMAIL_RE.search(user_identity["arn"])
             if match:
                 return match.group(0)
+            logger.debug("No email found in arn '%s'", user_identity["arn"])
 
         # Try to get email from the entire userIdentity object
         match = CloudTrailEvent.EMAIL_RE.search(json.dumps(user_identity))
         if match:
+            logger.debug("Email found via full userIdentity scan: %s", match.group(0))
             return match.group(0)
 
+        # Fall back to userName if available, even if not an email
+        if "userName" in user_identity:
+            logger.debug("No email found, falling back to non-email userName '%s'", user_identity["userName"])
+            return user_identity["userName"]
+
+        logger.debug("No email or userName found in userIdentity, returning Unknown")
         return "Unknown"
 
     @staticmethod
