@@ -1,6 +1,9 @@
 import re
 import json
+import logging
 from typing import Tuple, List
+
+logger = logging.getLogger(__name__)
 
 
 class CloudTrailEvent:
@@ -14,18 +17,59 @@ class CloudTrailEvent:
         self.user_email = self.__user_email(event)
         self.console_session = self.__console_session_event(event)
 
+    EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
+
     @staticmethod
     def __user_email(event) -> str:
-        if "userIdentity" in event:
-            match = re.search(
-                r"[\w.+-]+@[\w-]+\.[\w.-]+", json.dumps(event["userIdentity"])
-            )
-            if match is None:
-                return "Unknown"
-            else:
-                return match.group(0)
-        else:
+        if "userIdentity" not in event:
+            logger.debug("No userIdentity in event, returning Unknown")
             return "Unknown"
+
+        user_identity = event["userIdentity"]
+
+        # Try to get email from principalId if it exists
+        # e.g. "AROAXK4KVD27BINQTHSKU:paul@cloudandthings.io"
+        if "principalId" in user_identity:
+            parts = user_identity["principalId"].split(":")
+            if len(parts) > 1 and CloudTrailEvent.EMAIL_RE.fullmatch(parts[1]):
+                return parts[1]
+            logger.debug(
+                "principalId '%s' did not contain an email",
+                user_identity["principalId"],
+            )
+
+        # Try to get email from userName if it exists
+        if "userName" in user_identity:
+            if CloudTrailEvent.EMAIL_RE.fullmatch(user_identity["userName"]):
+                return user_identity["userName"]
+            logger.debug(
+                "userName '%s' is not an email, will try other fields",
+                user_identity["userName"],
+            )
+
+        # Try to get email from arn if it exists
+        if "arn" in user_identity:
+            match = CloudTrailEvent.EMAIL_RE.search(user_identity["arn"])
+            if match:
+                return match.group(0)
+            logger.debug("No email found in arn '%s'", user_identity["arn"])
+
+        # Try to get email from the entire userIdentity object
+        match = CloudTrailEvent.EMAIL_RE.search(json.dumps(user_identity))
+        if match:
+            logger.debug("Email found via full userIdentity scan: %s", match.group(0))
+            return match.group(0)
+
+        # Fall back to userName if available, even if not an email
+        if "userName" in user_identity:
+            logger.debug(
+                "No email found, falling back to non-email userName '%s'",
+                user_identity["userName"],
+            )
+            return user_identity["userName"]
+
+        logger.debug("No email or userName found in userIdentity, returning Unknown")
+        return "Unknown"
 
     @staticmethod
     def __readonly_event(event) -> bool:
