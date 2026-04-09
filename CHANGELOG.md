@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.2.1](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.2.0...v5.2.1) (2026-04-09)
+
+
+### Bug Fixes
+
+* Improve capturing of user email ([c6f8e2d](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/c6f8e2d1f7e300f134e3fa69d9fd5d5a9f101256))
+
 ## [5.2.0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.1.0...v5.2.0) (2024-11-07)
 
 
