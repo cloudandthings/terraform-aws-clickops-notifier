@@ -5,6 +5,30 @@ import re
 
 WEBHOOK_NAME_REGEXP = r".*webhooks-for-.*?\/(.*)"
 
+# Fields to include in notification event output.
+# Everything else (requestParameters, responseElements, sessionContext,
+# eventId, requestId, etc.) is stripped to reduce noise.
+EVENT_SUMMARY_FIELDS = [
+    "eventTime",
+    "eventSource",
+    "eventName",
+    "awsRegion",
+    "sourceIPAddress",
+    "userAgent",
+    "recipientAccountId",
+    "resources",
+]
+
+logger = logging.getLogger(__name__)
+
+
+def _summarize_event(trail_event: dict) -> dict:
+    """Return only the allowlisted fields from a CloudTrail event."""
+    summary = {k: trail_event[k] for k in EVENT_SUMMARY_FIELDS if k in trail_event}
+    if not summary:
+        logger.warning("No allowlisted fields found in event")
+    return summary
+
 
 class Messenger:
     def __init__(
@@ -53,7 +77,7 @@ class Messenger:
                         {"name": "Event Log Origin", "value": trail_event_origin},
                         {
                             "name": "Event",
-                            "value": f"```{json.dumps(trail_event, indent=2)}",
+                            "value": f"```{json.dumps(_summarize_event(trail_event), indent=2)}",  # noqa: E501
                         },
                     ],
                     "markdown": True,
@@ -72,12 +96,11 @@ class Messenger:
     def __send_slack_message(
         self, user, trail_event, trail_event_origin: str, standalone: bool
     ) -> bool:
-        # Maximum length for a section block is 3k so truncate to 2900
-        formatted_event = json.dumps(trail_event, indent=2)
-        if len(formatted_event) < 2900:
-            formatted_event = f"*Event*\n```{formatted_event}```"
-        else:
+        formatted_event = json.dumps(_summarize_event(trail_event), indent=2)
+        if len(formatted_event) > 2900:
             formatted_event = f"*Event (truncated)*\n```{formatted_event[:2900]}```"
+        else:
+            formatted_event = f"*Event*\n```{formatted_event}```"
         payload = {
             "blocks": [
                 {
