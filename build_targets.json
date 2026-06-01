@@ -2,10 +2,6 @@
   "include": [
     {
       "name": "clickopsnotifier",
-      "runtime": "python3.8"
-    },
-    {
-      "name": "clickopsnotifier",
       "runtime": "python3.9"
     },
     {
@@ -19,6 +15,10 @@
     {
       "name": "clickopsnotifier",
       "runtime": "python3.12"
+    },
+    {
+      "name": "clickopsnotifier",
+      "runtime": "python3.13"
     }
 
   ]
