@@ -59,16 +59,16 @@ repos:
       #   args: ['--args=--config-file __GIT_WORKING_DIR__/.checkov-config.yml']
 # Python
   - repo: https://github.com/psf/black
-    rev: 22.6.0
+    rev: 24.10.0
     hooks:
     - id: black
   - repo: https://github.com/pycqa/flake8
-    rev: 5.0.4
+    rev: 7.1.1
     hooks:
     - id: flake8
 # PRECOMMIT - GENERAL
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v5.0.0
     hooks:
       - id: check-added-large-files
         args: ['--maxkb=1024']
