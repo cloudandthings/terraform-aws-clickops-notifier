@@ -114,8 +114,8 @@ resource "aws_kinesis_firehose_delivery_stream" "extended_s3_stream" {
 
     compression_format = "UNCOMPRESSED"
 
-    buffer_size     = 64
-    buffer_interval = 300
+    buffering_size     = 64
+    buffering_interval = 300
 
     # Hive-style dynamic partitioning by recipientAccountId and awsRegion
     # https://docs.aws.amazon.com/firehose/latest/dev/dynamic-partitioning.html
