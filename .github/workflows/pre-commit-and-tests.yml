@@ -37,6 +37,8 @@ jobs:
         with:
           python-version: 3.11
       - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
       - name: Install requirements
         run: |
           python -m venv .venv
