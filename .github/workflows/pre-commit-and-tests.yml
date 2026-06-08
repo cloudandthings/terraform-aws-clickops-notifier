@@ -79,19 +79,14 @@ jobs:
         with:
           python-version: 3.11
       - uses: hashicorp/setup-terraform@v3
-      - uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ env.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          role-to-assume: ${{ env.AWS_ROLE_ARN }}
-          role-duration-seconds: 3600
+          terraform_wrapper: false
       - name: Install requirements
         run: |
           python -m venv .venv
           source .venv/bin/activate
           pip install -r tests/requirements.txt
-      - name: Run
+      - name: Run unit tests
         run: |
           source .venv/bin/activate
           echo "::echo::off"
@@ -99,3 +94,10 @@ jobs:
         env:
           PYTEST_ADDOPTS: "--color=yes"
         timeout-minutes: 10
+      - name: Run terraform example tests
+        run: |
+          for dir in examples/basic examples/role examples/standalone examples/delivery_stream; do
+            echo "--- terraform test: $dir ---"
+            terraform -chdir=$dir test
+          done
+        timeout-minutes: 15
