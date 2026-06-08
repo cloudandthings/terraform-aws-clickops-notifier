@@ -93,6 +93,7 @@ jobs:
           pytest
         env:
           PYTEST_ADDOPTS: "--color=yes"
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
         timeout-minutes: 10
       - name: Run terraform example tests
         run: |
