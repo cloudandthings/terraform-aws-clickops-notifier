@@ -99,6 +99,7 @@ jobs:
         run: |
           for dir in examples/basic examples/role examples/standalone examples/delivery_stream; do
             echo "--- terraform test: $dir ---"
+            terraform -chdir=$dir init -backend=false
             terraform -chdir=$dir test
           done
         timeout-minutes: 15
