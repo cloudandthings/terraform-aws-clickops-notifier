@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     container: bjorncloudandthings/terraform-aws-github:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       #--------------------------------------------
