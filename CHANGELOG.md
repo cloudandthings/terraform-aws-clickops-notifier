@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.2.2](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.2.1...v5.2.2) (2026-06-12)
+
+
+### Bug Fixes
+
+* add python3.13 deployment package and fix pre-commit checks ([e63e399](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/e63e399902c0500d16ed69f06cbb01777538a306))
+* bump AWS provider constraint in examples to ~&gt; 6.0 ([fb361f0](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/fb361f0a4bdd71b983bd8a47aa01d41c1e7458e0))
+* disable terraform wrapper to fix Node.js optional chaining error ([fce6798](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/fce679896966a8c95d321ceec62edc0af9d0cdcd))
+* downgrade CI Python to 3.11 for container GLIBC compatibility ([cd16f8b](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/cd16f8b2a9ae76d76e665be45fbec54c3bc70273))
+* rename buffer_size/interval to buffering_size/interval for AWS provider v6 ([0913d91](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/0913d915d82cd5822bd56e47862663e8eedb47ac))
+* run terraform init before terraform test in CI ([919c582](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/919c5822a82b594bc0ddf5cab45a7b328a95792d))
+* set AWS_DEFAULT_REGION for unit tests so boto3 can initialize ([299d0b2](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/299d0b2188b704dcc04a94fab285ee5873b63051))
+* trim notification event output to only relevant fields ([#110](https://github.com/cloudandthings/terraform-aws-clickops-notifier/issues/110)) ([0b4f9af](https://github.com/cloudandthings/terraform-aws-clickops-notifier/commit/0b4f9af863a99159b5ba40e1408ddceb8227a108))
+
 ## [5.2.1](https://github.com/cloudandthings/terraform-aws-clickops-notifier/compare/v5.2.0...v5.2.1) (2026-04-09)
 
 
