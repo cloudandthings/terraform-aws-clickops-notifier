@@ -132,6 +132,7 @@ class ClickOpsEventChecker:
             "^Mozilla/",
             "^console(.*)amazonaws.com(.*)",
             "^aws-internal(.*)AWSLambdaConsole(.*)",
+            "^\[aws-cli\/",
         ]
 
         self.USER_AGENTS = {"console.amazonaws.com", "Coral/Jakarta", "Coral/Netty4"}
