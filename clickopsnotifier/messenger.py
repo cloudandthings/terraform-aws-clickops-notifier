@@ -56,36 +56,55 @@ class Messenger:
         self, user, trail_event, trail_event_origin: str, standalone: str
     ) -> bool:
         payload = {
-            "@type": "MessageCard",
-            "@context": "http://schema.org/extensions",
-            "themeColor": "0076D7",
-            "summary": "ClickOps Alert",
-            "sections": [
+            "type": "message",
+            "attachments": [
                 {
-                    "activityTitle": f"{'[std]' if standalone else '[org]'} Someone is practicing ClickOps in your AWS Account!",  # noqa: E501
-                    "facts": [
-                        {
-                            "name": "Account Id",
-                            "value": trail_event["recipientAccountId"],
-                        },
-                        {"name": "Region", "value": trail_event["awsRegion"]},
-                        {"name": "User", "value": user},
-                        {
-                            "name": "IAM Action",
-                            "value": f"{trail_event['eventSource'].split('.')[0]}:{trail_event['eventName']}",  # noqa: E501
-                        },
-                        {"name": "Event Log Origin", "value": trail_event_origin},
-                        {
-                            "name": "Event",
-                            "value": f"```{json.dumps(_summarize_event(trail_event), indent=2)}",  # noqa: E501
-                        },
-                    ],
-                    "markdown": True,
+                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "content": {
+                        "type": "AdaptiveCard",
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.4",
+                        "msteams": {"width": "Full"},
+                        "body": [
+                            {
+                                "type": "Container",
+                                "style": "attention",
+                                "bleed": True,
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "text": f"{'[std]' if standalone else '[org]'} 🫆 Someone is practicing ClickOps in your AWS Account!",
+                                        "weight": "Bolder",
+                                        "size": "Medium",
+                                        "wrap": True,
+                                    }
+                                ],
+                            },
+                            {
+                                "type": "FactSet",
+                                "facts": [
+                                    {"title": "Account ID", "value": trail_event["recipientAccountId"]},
+                                    {"title": "Region", "value": trail_event["awsRegion"]},
+                                    {"title": "User", "value": user},
+                                    {"title": "IAM Action", "value": f"{trail_event['eventSource'].split('.')[0]}:{trail_event['eventName']}"},
+                                    {"title": "Event Log Origin", "value": trail_event_origin},
+                                ],
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": f"```{json.dumps(_summarize_event(trail_event), indent=2)}",
+                                "wrap": True,
+                                "isSubtle": True,
+                                "spacing": "Medium",
+                            },
+                        ],
+                    },
                 }
             ],
         }
+        
         response = requests.post(self.webhook_url, json=payload)
-        if response.status_code != 200:
+        if response.status_code not in [200, 201, 202]:
             logging.info(f"{self.webhook_name} json payload:\n\n{json.dumps(payload)}")
             logging.error(
                 f"{self.webhook_name} response.content:\n\n{response.content}"
