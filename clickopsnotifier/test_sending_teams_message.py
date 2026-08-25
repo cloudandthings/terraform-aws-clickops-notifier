@@ -4,7 +4,7 @@ import sys
 
 from clickopsnotifier.messenger import Messenger
 
-WEBHOOK_URL = ""  # Replace with your actual webhook URL
+WEBHOOK_URL = "https://your-webhook-url.com/webhook"  # Replace with your actual webhook URL
 
 
 def main() -> int:
