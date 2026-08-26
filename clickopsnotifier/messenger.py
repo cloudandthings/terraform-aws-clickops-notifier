@@ -73,7 +73,7 @@ class Messenger:
                                 "items": [
                                     {
                                         "type": "TextBlock",
-                                        "text": f"{'[std]' if standalone else '[org]'} 🫆 Someone is practicing ClickOps in your AWS Account!",
+                                        "text": f"{'[std]' if standalone else '[org]'} 🫆 Someone is practicing ClickOps in your AWS Account!",  # noqa: E501
                                         "weight": "Bolder",
                                         "size": "Medium",
                                         "wrap": True,
@@ -94,7 +94,7 @@ class Messenger:
                                     {"title": "User", "value": user},
                                     {
                                         "title": "IAM Action",
-                                        "value": f"{trail_event['eventSource'].split('.')[0]}:{trail_event['eventName']}",
+                                        "value": f"{trail_event['eventSource'].split('.')[0]}:{trail_event['eventName']}",  # noqa: E501
                                     },
                                     {
                                         "title": "Event Log Origin",
@@ -104,7 +104,7 @@ class Messenger:
                             },
                             {
                                 "type": "TextBlock",
-                                "text": f"```{json.dumps(_summarize_event(trail_event), indent=2)}",
+                                "text": f"```{json.dumps(_summarize_event(trail_event), indent=2)}",  # noqa: E501
                                 "wrap": True,
                                 "isSubtle": True,
                                 "spacing": "Medium",
