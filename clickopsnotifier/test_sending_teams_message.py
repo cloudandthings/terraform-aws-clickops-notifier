@@ -4,7 +4,9 @@ import sys
 
 from clickopsnotifier.messenger import Messenger
 
-WEBHOOK_URL = "https://your-webhook-url.com/webhook"  # Replace with your actual webhook URL
+WEBHOOK_URL = (
+    "https://your-webhook-url.com/webhook"  # Replace with your actual webhook URL
+)
 
 
 def main() -> int:
@@ -22,7 +24,9 @@ def main() -> int:
         "sourceIPAddress": "203.0.113.10",
         "userAgent": "Mozilla/5.0",
         "recipientAccountId": "123456789012",
-        "resources": [{"ARN": "arn:aws:ec2:us-east-1:123456789012:instance/i-1234567890abcdef0"}],
+        "resources": [
+            {"ARN": "arn:aws:ec2:us-east-1:123456789012:instance/i-1234567890abcdef0"}
+        ],
     }
 
     messenger = Messenger(

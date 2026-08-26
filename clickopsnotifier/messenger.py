@@ -83,11 +83,23 @@ class Messenger:
                             {
                                 "type": "FactSet",
                                 "facts": [
-                                    {"title": "Account ID", "value": trail_event["recipientAccountId"]},
-                                    {"title": "Region", "value": trail_event["awsRegion"]},
+                                    {
+                                        "title": "Account ID",
+                                        "value": trail_event["recipientAccountId"],
+                                    },
+                                    {
+                                        "title": "Region",
+                                        "value": trail_event["awsRegion"],
+                                    },
                                     {"title": "User", "value": user},
-                                    {"title": "IAM Action", "value": f"{trail_event['eventSource'].split('.')[0]}:{trail_event['eventName']}"},
-                                    {"title": "Event Log Origin", "value": trail_event_origin},
+                                    {
+                                        "title": "IAM Action",
+                                        "value": f"{trail_event['eventSource'].split('.')[0]}:{trail_event['eventName']}",
+                                    },
+                                    {
+                                        "title": "Event Log Origin",
+                                        "value": trail_event_origin,
+                                    },
                                 ],
                             },
                             {
@@ -102,7 +114,7 @@ class Messenger:
                 }
             ],
         }
-        
+
         response = requests.post(self.webhook_url, json=payload)
         if response.status_code not in [200, 201, 202]:
             logging.info(f"{self.webhook_name} json payload:\n\n{json.dumps(payload)}")

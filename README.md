@@ -33,7 +33,7 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 ### Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_additional_iam_policy_statements"></a> [additional\_iam\_policy\_statements](#input\_additional\_iam\_policy\_statements) | Map of dynamic policy statements to attach to Lambda Function role | `any` | `{}` | no |
 | <a name="input_allowed_aws_principals_for_sns_subscribe"></a> [allowed\_aws\_principals\_for\_sns\_subscribe](#input\_allowed\_aws\_principals\_for\_sns\_subscribe) | List of AWS principals allowed to subscribe to the SNS topic (only applicable to org deployments). | `list(string)` | `[]` | no |
 | <a name="input_cloudtrail_bucket_name"></a> [cloudtrail\_bucket\_name](#input\_cloudtrail\_bucket\_name) | Bucket containing the Cloudtrail logs that you want to process. ControlTower bucket name follows this naming convention `aws-controltower-logs-{{account_id}}-{{region}}` | `string` | `""` | no |
@@ -70,14 +70,14 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 ### Modules
 
 | Name | Source | Version |
-|------|--------|---------|
+| ---- | ------ | ------- |
 | <a name="module_clickops_notifier_lambda"></a> [clickops\_notifier\_lambda](#module\_clickops\_notifier\_lambda) | terraform-aws-modules/lambda/aws | 4.9.0 |
 
 ----
 ### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_clickops_notifier_lambda"></a> [clickops\_notifier\_lambda](#output\_clickops\_notifier\_lambda) | Expose all the outputs from the lambda module |
 | <a name="output_sns_topic"></a> [sns\_topic](#output\_sns\_topic) | Expose the bucket notification SNS details |
 | <a name="output_sqs_queue"></a> [sqs\_queue](#output\_sqs\_queue) | Expose the bucket notification SQS details |
@@ -86,14 +86,14 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 ### Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.9 |
 
 ----
 ### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.15.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.9 |
 
@@ -101,7 +101,7 @@ Full contributing [guidelines are covered here](.github/contributing.md).
 ### Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_cloudwatch_log_subscription_filter.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_subscription_filter) | resource |
 | [aws_s3_bucket_notification.bucket_notification](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_notification) | resource |
 | [aws_s3_object.deployment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
