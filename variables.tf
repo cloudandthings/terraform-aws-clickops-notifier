@@ -64,7 +64,7 @@ variable "included_users" {
 
 variable "excluded_scoped_actions" {
   type        = list(string)
-  description = "A list of service scoped actions that will not be alerted on. Format {{service}}.amazonaws.com:{{action}}"
+  description = "A list of service scoped actions that will not be alerted on. Format {{service}}.amazonaws.com:{{action}}. Supports fnmatch-style wildcards, e.g. {{service}}.amazonaws.com:*"
   default     = []
 }
 
