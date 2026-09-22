@@ -1,3 +1,4 @@
+import fnmatch
 import re
 import json
 import logging
@@ -154,9 +155,10 @@ class ClickOpsEventChecker:
         return self.event.event_name in self.IGNORED_EVENTS
 
     def __match_ignored_scoped_events(self) -> bool:
-        return (
-            f"{self.event.event_source}:{self.event.event_name}"
-            in self.IGNORED_SCOPED_EVENTS
+        scoped_event = f"{self.event.event_source}:{self.event.event_name}"
+        return any(
+            fnmatch.fnmatchcase(scoped_event, pattern)
+            for pattern in self.IGNORED_SCOPED_EVENTS
         )  # noqa: E501
 
     def __user_agent_console(self) -> bool:
