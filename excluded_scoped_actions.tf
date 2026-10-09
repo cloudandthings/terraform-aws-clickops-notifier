@@ -63,5 +63,11 @@ locals {
     "support.amazonaws.com:ResolveCase",
 
     "grafana.amazonaws.com:login_auth_sso",
+
+    "iot.amazonaws.com:RegisterCertificate",
+
+    "q.amazonaws.com:SendMessage",
+    "q.amazonaws.com:StartConversation",
+    "q.amazonaws.com:StartTroubleshootingAnalysis",
   ]
 }
